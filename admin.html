@@ -77,7 +77,13 @@ async function load() {
   if (!sb) { setMsg('Configurá SUPABASE_URL y SUPABASE_ANON_KEY en este archivo.', true); return; }
   const key = $('#key').value;
   const { data, error } = await sb.rpc('admin_overview', { p_key: key });
-  if (error) { setMsg('Clave incorrecta o panel bloqueado.', true); $('#app').hidden = true; return; }
+  if (error) {
+    const m = error.message || '';
+    setMsg(m.includes('no_autorizado')
+      ? 'Clave incorrecta, o todavía no definiste admin_key_hash en la base (ver README).'
+      : 'Error: ' + m, true);
+    $('#app').hidden = true; return;
+  }
   setMsg('Datos actualizados ' + new Date().toLocaleTimeString('es-AR'));
   $('#app').hidden = false;
 
