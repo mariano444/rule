@@ -1,16 +1,16 @@
 // Edge Function: create-payment
-// Registra al jugador, crea un pago "pending" y devuelve cómo pagar.
-//
-// Variables de entorno (supabase secrets set ...):
-//   GALIOPAY_API_KEY, GALIOPAY_CLIENT_ID  -> si ambas existen, se cobra con Galiopay (POST /api/payment-links)
-//   GALIOPAY_SANDBOX    "true" para crear links de prueba (sandbox)
-//   WEBHOOK_URL         (opcional) default: <SUPABASE_URL>/functions/v1/payment-webhook
-//   RETURN_URL          URL a la que vuelve el jugador (tu sitio)
-//   TRANSFER_ALIAS, TRANSFER_CBU, TRANSFER_HOLDER   -> modo manual (si no hay credenciales de Galiopay)
-//   ALLOWED_ORIGIN      dominio de tu sitio (ej. https://miruleta.com.ar)
+// Registra al jugador, crea un pago "pending" y un link de pago en Galiopay.
 // Doc Galiopay: https://pay.galio.app/docs/api/paymentlink
 // Desplegar con: supabase functions deploy create-payment --no-verify-jwt
-// (las claves "sb_publishable_..." no son JWT; la función valida los datos por su cuenta)
+//
+// CONFIGURACIÓN: cada valor se lee primero de la variable de entorno (secrets) y,
+// si no existe, de la tabla `settings` de la base de datos:
+//   settings.galiopay_client_id   | GALIOPAY_CLIENT_ID    -> header x-client-id
+//   settings.galiopay_api_key     | GALIOPAY_API_KEY      -> Authorization: Bearer
+//   settings.webhook_token        | WEBHOOK_TOKEN         -> secreto en la URL del webhook
+//   settings.return_url           | RETURN_URL            -> a dónde vuelve el jugador (tu sitio)
+//   settings.galiopay_sandbox     | GALIOPAY_SANDBOX      -> "true" = links de prueba
+//   ALLOWED_ORIGIN (env, opcional) -> dominio permitido para CORS
 
 import { createClient } from "npm:@supabase/supabase-js@2";
 
@@ -22,22 +22,37 @@ const cors = {
 const json = (body: unknown, status = 200) =>
   new Response(JSON.stringify(body), { status, headers: { ...cors, "Content-Type": "application/json" } });
 
-// ---------------------------------------------------------------------
-// GALIOPAY — crea un link de pago por transferencia.
-// Auth: Authorization: Bearer <API_KEY> + x-client-id: <CLIENT_ID>
-// El pago se confirma por webhook (ver payment-webhook).
-// ---------------------------------------------------------------------
-async function createGaliopayCheckout(reference: string, price: number) {
-  const apiKey = Deno.env.get("GALIOPAY_API_KEY")!;
-  const clientId = Deno.env.get("GALIOPAY_CLIENT_ID")!;
-  const webhookUrl = Deno.env.get("WEBHOOK_URL") ?? `${Deno.env.get("SUPABASE_URL")}/functions/v1/payment-webhook`;
-  const ret = Deno.env.get("RETURN_URL");
+// deno-lint-ignore no-explicit-any
+type SB = any;
+
+async function cfg(sb: SB, key: string, env: string): Promise<string | null> {
+  const e = Deno.env.get(env);
+  if (e) return e;
+  const { data } = await sb.from("settings").select("value").eq("key", key).maybeSingle();
+  return data?.value ?? null;
+}
+
+class GalioError extends Error {
+  constructor(public status: number, public detail: string) { super(`galiopay_http_${status}`); }
+}
+
+// Crea el link de pago por transferencia. Devuelve null si no hay credenciales.
+async function createGaliopayLink(sb: SB, reference: string, price: number, origin: string | null) {
+  const apiKey = await cfg(sb, "galiopay_api_key", "GALIOPAY_API_KEY");
+  const clientId = await cfg(sb, "galiopay_client_id", "GALIOPAY_CLIENT_ID");
+  if (!apiKey || !clientId) return null;
+
+  const token = await cfg(sb, "webhook_token", "WEBHOOK_TOKEN");
+  const base = `${Deno.env.get("SUPABASE_URL")}/functions/v1/payment-webhook`;
+  const notificationUrl = token ? `${base}?k=${encodeURIComponent(token)}` : base;
+  const ret = (await cfg(sb, "return_url", "RETURN_URL")) ?? origin;
+  const sandbox = (await cfg(sb, "galiopay_sandbox", "GALIOPAY_SANDBOX")) === "true";
 
   const body: Record<string, unknown> = {
-    items: [{ title: "Ficha de Mega Ruleta", quantity: 1, unitPrice: price, currencyId: "ARS" }],
-    referenceId: reference,          // solo letras, números, _ y -
-    notificationUrl: webhookUrl,
-    sandbox: Deno.env.get("GALIOPAY_SANDBOX") === "true",
+    items: [{ title: "Ficha", quantity: 1, unitPrice: price, currencyId: "ARS" }],
+    referenceId: reference,                // solo letras, números, _ y -
+    notificationUrl,
+    sandbox,
   };
   if (ret) body.backUrl = { success: `${ret}?pago=ok`, failure: `${ret}?pago=error` };
 
@@ -46,13 +61,15 @@ async function createGaliopayCheckout(reference: string, price: number) {
     headers: { "Content-Type": "application/json", Authorization: `Bearer ${apiKey}`, "x-client-id": clientId },
     body: JSON.stringify(body),
   });
+  const text = await r.text();
   if (!r.ok) {
-    console.error("galiopay create link:", r.status, await r.text());
-    throw new Error(`galiopay_http_${r.status}`);
+    console.error("galiopay create link:", r.status, text);
+    throw new GalioError(r.status, text.slice(0, 300));
   }
-  const d = await r.json();               // { url, proofToken, referenceId, sandbox }
-  if (!d.url) throw new Error("galiopay_sin_url");
-  return { checkout_url: String(d.url) };
+  let d: { url?: string };
+  try { d = JSON.parse(text); } catch { throw new GalioError(502, "respuesta no JSON"); }
+  if (!d.url) throw new GalioError(502, "respuesta sin url");
+  return { checkout_url: String(d.url) };                  // { url, proofToken, referenceId, sandbox }
 }
 
 Deno.serve(async (req) => {
@@ -99,27 +116,31 @@ Deno.serve(async (req) => {
     if (pErr || !player) throw pErr ?? new Error("player");
 
     const reference = crypto.randomUUID().replaceAll("-", "").slice(0, 20).toUpperCase();
-    const { error: payErr } = await sb
-      .from("payments")
-      .insert({ reference, player_id: player.id, amount: price });
+    const { error: payErr } = await sb.from("payments").insert({ reference, player_id: player.id, amount: price });
     if (payErr) throw payErr;
 
-    const useGaliopay = !!Deno.env.get("GALIOPAY_API_KEY") && !!Deno.env.get("GALIOPAY_CLIENT_ID");
-    if (useGaliopay) {
-      const co = await createGaliopayCheckout(reference, price);
-      await sb.from("payments").update({ checkout_url: co.checkout_url }).eq("reference", reference);
-      return json({ reference, price, checkout_url: co.checkout_url });
+    try {
+      const link = await createGaliopayLink(sb, reference, price, req.headers.get("origin"));
+      if (link) {
+        await sb.from("payments").update({ checkout_url: link.checkout_url }).eq("reference", reference);
+        return json({ reference, price, checkout_url: link.checkout_url });
+      }
+    } catch (e) {
+      await sb.from("payments").update({ status: "rejected" }).eq("reference", reference);
+      if (e instanceof GalioError) return json({ error: "galiopay_error", status: e.status }, 502);
+      throw e;
     }
 
-    return json({
-      reference,
-      price,
-      transfer: {
-        alias: Deno.env.get("TRANSFER_ALIAS") ?? "",
-        cbu: Deno.env.get("TRANSFER_CBU") ?? "",
-        holder: Deno.env.get("TRANSFER_HOLDER") ?? "",
-      },
-    });
+    // Sin credenciales de Galiopay: transferencia manual solo si hay alias configurado
+    const alias = Deno.env.get("TRANSFER_ALIAS");
+    if (alias) {
+      return json({
+        reference, price,
+        transfer: { alias, cbu: Deno.env.get("TRANSFER_CBU") ?? "", holder: Deno.env.get("TRANSFER_HOLDER") ?? "" },
+      });
+    }
+    await sb.from("payments").update({ status: "rejected" }).eq("reference", reference);
+    return json({ error: "galiopay_no_configurado" }, 503);
   } catch (e) {
     console.error("create-payment:", e);
     return json({ error: "error_interno" }, 500);
