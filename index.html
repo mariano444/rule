@@ -1,0 +1,680 @@
+<!DOCTYPE html>
+<html lang="es-AR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Mega Ruleta — Girá y ganá hasta $20.000.000</title>
+<meta name="description" content="Un tiro, diez premios. Comprá tu ficha por transferencia y girá la Mega Ruleta. Probabilidades públicas.">
+<meta name="theme-color" content="#0a0508">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Poppins:wght@400;600;800&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+:root{
+  --gold:#f5c542;--gold-2:#ffe08a;--gold-3:#b8860b;--ruby:#c1121f;--bg:#0a0508;
+  --panel:rgba(26,12,20,.82);--line:rgba(245,197,66,.28);--text:#fff6e0;--muted:#b9a98a;--ok:#2ecc71;--err:#ff6b6b;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:'Poppins',system-ui,sans-serif;color:var(--text);min-height:100vh;overflow-x:hidden;
+  background:radial-gradient(1200px 700px at 50% -10%,#4a0b22 0%,#17060e 48%,#0a0508 100%) fixed}
+body::before{content:"";position:fixed;inset:0;pointer-events:none;opacity:.5;
+  background-image:radial-gradient(2px 2px at 20% 30%,rgba(245,197,66,.6),transparent),radial-gradient(1.5px 1.5px at 70% 60%,rgba(245,197,66,.5),transparent),radial-gradient(2px 2px at 85% 20%,rgba(255,224,138,.5),transparent),radial-gradient(1.5px 1.5px at 40% 80%,rgba(245,197,66,.4),transparent);
+  background-size:420px 420px;animation:drift 40s linear infinite}
+@keyframes drift{to{background-position:420px 420px}}
+button{font-family:inherit;cursor:pointer}
+a{color:var(--gold)}
+.wrap{max-width:1180px;margin:0 auto;padding:0 18px}
+
+/* header */
+header{position:sticky;top:0;z-index:20;background:rgba(10,5,8,.78);backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
+header .wrap{display:flex;align-items:center;justify-content:space-between;height:60px;gap:12px}
+.logo{font-family:'Bebas Neue',sans-serif;font-size:28px;letter-spacing:2px;background:linear-gradient(180deg,var(--gold-2),var(--gold) 55%,var(--gold-3));-webkit-background-clip:text;background-clip:text;color:transparent}
+.hdr-right{display:flex;align-items:center;gap:10px}
+.chip{border:1px solid var(--line);border-radius:999px;padding:6px 14px;font-size:13px;font-weight:600;background:rgba(245,197,66,.08);display:flex;align-items:center;gap:6px}
+.chip b{color:var(--gold)}
+.icon-btn{background:transparent;border:1px solid var(--line);color:var(--text);border-radius:999px;width:36px;height:36px;font-size:16px}
+
+/* demo ribbon */
+.demo{background:repeating-linear-gradient(45deg,#7a5b00,#7a5b00 12px,#5c4400 12px,#5c4400 24px);text-align:center;font-size:12px;font-weight:600;padding:6px;letter-spacing:.5px}
+
+/* hero */
+.hero{text-align:center;padding:34px 0 8px}
+.hero h1{font-family:'Bebas Neue',sans-serif;font-size:clamp(54px,11vw,118px);line-height:.9;letter-spacing:3px;
+  background:linear-gradient(180deg,#fff3c4 0%,var(--gold) 45%,var(--gold-3) 100%);-webkit-background-clip:text;background-clip:text;color:transparent;
+  filter:drop-shadow(0 0 22px rgba(245,197,66,.35))}
+.hero p{color:var(--muted);font-size:clamp(14px,2.4vw,18px);margin-top:10px}
+.jackpot{display:inline-flex;align-items:center;gap:10px;margin-top:18px;padding:10px 22px;border-radius:999px;border:1px solid var(--gold);
+  background:linear-gradient(90deg,rgba(193,18,31,.35),rgba(245,197,66,.2),rgba(193,18,31,.35));font-weight:800;font-size:clamp(14px,3vw,20px);
+  animation:pulse 2.2s ease-in-out infinite;box-shadow:0 0 30px rgba(245,197,66,.25)}
+.jackpot b{font-family:'Bebas Neue',sans-serif;font-size:1.7em;letter-spacing:1px;color:var(--gold-2)}
+@keyframes pulse{50%{box-shadow:0 0 55px rgba(245,197,66,.55);transform:scale(1.02)}}
+
+/* stage */
+.stage{display:grid;grid-template-columns:1.1fr .9fr;gap:34px;align-items:center;padding:26px 0 36px}
+@media(max-width:900px){.stage{grid-template-columns:1fr}}
+.wheel-wrap{position:relative;width:min(94vw,580px);aspect-ratio:1;margin:0 auto}
+.wheel-wrap::before{content:"";position:absolute;inset:-8%;border-radius:50%;background:radial-gradient(circle,rgba(245,197,66,.28),transparent 62%);animation:glow 3s ease-in-out infinite}
+@keyframes glow{50%{opacity:.55;transform:scale(1.04)}}
+#wheel{position:relative;width:100%;height:100%;display:block}
+.pointer{position:absolute;left:50%;top:-1.5%;width:10%;transform:translateX(-50%);z-index:3;transform-origin:50% 22%;filter:drop-shadow(0 4px 6px rgba(0,0,0,.6))}
+.hub{position:absolute;left:50%;top:50%;width:24%;aspect-ratio:1;transform:translate(-50%,-50%);border-radius:50%;z-index:3;border:4px solid #fff3c4;
+  background:radial-gradient(circle at 35% 30%,#fff3c4,var(--gold) 45%,var(--gold-3));color:#3a0a12;font-family:'Bebas Neue',sans-serif;font-size:clamp(20px,5.2vw,34px);letter-spacing:1.5px;
+  box-shadow:0 0 0 6px rgba(0,0,0,.35),0 0 34px rgba(245,197,66,.7);transition:transform .15s}
+.hub:hover:not(:disabled){transform:translate(-50%,-50%) scale(1.06)}
+.hub:active:not(:disabled){transform:translate(-50%,-50%) scale(.96)}
+.hub.ready{animation:hubpulse 1.4s ease-in-out infinite}
+.hub:disabled{filter:grayscale(.4);cursor:wait}
+@keyframes hubpulse{50%{box-shadow:0 0 0 6px rgba(0,0,0,.35),0 0 60px rgba(255,224,138,1)}}
+
+/* panel */
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:22px;padding:26px;box-shadow:0 20px 60px rgba(0,0,0,.45)}
+.panel h2{font-family:'Bebas Neue',sans-serif;font-size:34px;letter-spacing:1.5px;color:var(--gold-2)}
+.price{display:flex;align-items:baseline;gap:10px;margin:6px 0 14px}
+.price b{font-family:'Bebas Neue',sans-serif;font-size:56px;color:var(--gold);line-height:1}
+.price span{color:var(--muted);font-size:14px}
+.field{margin-bottom:10px}
+.field label{display:block;font-size:12px;color:var(--muted);margin-bottom:4px}
+.field input{width:100%;background:rgba(255,255,255,.06);border:1px solid var(--line);border-radius:12px;padding:12px 14px;color:var(--text);font-size:15px;font-family:inherit}
+.field input:focus{outline:2px solid var(--gold);outline-offset:1px}
+.check{display:flex;gap:10px;align-items:flex-start;font-size:12.5px;color:var(--muted);margin:8px 0;line-height:1.4}
+.check input{margin-top:3px;accent-color:var(--gold);width:16px;height:16px;flex:none}
+.btn{display:block;width:100%;border:0;border-radius:14px;padding:15px 18px;font-weight:800;font-size:16px;letter-spacing:.4px;
+  background:linear-gradient(180deg,#ffe08a,var(--gold) 55%,var(--gold-3));color:#3a0a12;box-shadow:0 8px 24px rgba(245,197,66,.3);transition:transform .15s,filter .15s}
+.btn:hover:not(:disabled){transform:translateY(-2px);filter:brightness(1.07)}
+.btn:disabled{opacity:.6;cursor:wait}
+.btn.ghost{background:transparent;color:var(--gold);border:1px solid var(--gold);box-shadow:none}
+.err{color:var(--err);font-size:13px;min-height:18px;margin-top:6px}
+.have{display:none;margin-bottom:14px;padding:12px 14px;border-radius:14px;border:1px solid var(--ok);background:rgba(46,204,113,.1);font-size:14px}
+.have.on{display:block}
+.steps{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:16px;text-align:center;font-size:12px;color:var(--muted)}
+.steps div{border:1px solid var(--line);border-radius:12px;padding:10px 6px}
+.steps b{display:block;color:var(--gold);font-family:'Bebas Neue';font-size:22px}
+
+/* sections */
+section.block{padding:30px 0}
+section.block h3{font-family:'Bebas Neue',sans-serif;font-size:38px;letter-spacing:1.5px;color:var(--gold-2);margin-bottom:6px}
+section.block .sub{color:var(--muted);font-size:14px;margin-bottom:16px}
+.prize-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:10px}
+.prize{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:12px 14px;border-radius:14px;border:1px solid var(--line);background:rgba(255,255,255,.04);border-left-width:6px}
+.prize b{font-size:15px}
+.prize small{color:var(--muted);font-size:12px;white-space:nowrap}
+.ticker{overflow:hidden;border:1px solid var(--line);border-radius:14px;background:rgba(0,0,0,.35);padding:10px 0;display:none}
+.ticker.on{display:block}
+.ticker-track{display:inline-flex;gap:46px;white-space:nowrap;padding-left:100%;animation:marq 38s linear infinite}
+@keyframes marq{to{transform:translateX(-100%)}}
+details{border:1px solid var(--line);border-radius:12px;padding:12px 16px;margin-bottom:8px;background:rgba(255,255,255,.03)}
+summary{cursor:pointer;font-weight:600}
+details p{color:var(--muted);font-size:14px;margin-top:8px;line-height:1.55}
+footer{border-top:1px solid var(--line);padding:26px 0 90px;color:var(--muted);font-size:12.5px;line-height:1.6;text-align:center}
+footer strong{color:var(--text)}
+
+/* modal / toast */
+.modal{position:fixed;inset:0;z-index:50;display:none;align-items:center;justify-content:center;padding:18px;background:rgba(0,0,0,.72);backdrop-filter:blur(6px)}
+.modal.on{display:flex}
+.card{width:min(460px,100%);max-height:92vh;overflow:auto;background:linear-gradient(180deg,#25101b,#14080f);border:1px solid var(--gold);border-radius:24px;padding:26px;text-align:center;box-shadow:0 0 70px rgba(245,197,66,.28);animation:pop .35s cubic-bezier(.2,1.3,.4,1)}
+@keyframes pop{from{transform:scale(.8);opacity:0}}
+.card h4{font-family:'Bebas Neue',sans-serif;font-size:44px;letter-spacing:2px;color:var(--gold-2);line-height:1}
+.card .big{font-family:'Bebas Neue',sans-serif;font-size:clamp(46px,12vw,72px);color:var(--gold);line-height:1.05;margin:8px 0;word-break:break-word}
+.card p{color:var(--muted);font-size:14px;line-height:1.5;margin-bottom:14px}
+.card .btn{margin-top:8px}
+.copyrow{display:flex;justify-content:space-between;align-items:center;gap:8px;text-align:left;border:1px solid var(--line);border-radius:12px;padding:10px 12px;margin-bottom:8px;background:rgba(255,255,255,.04)}
+.copyrow small{display:block;color:var(--muted);font-size:11px}
+.copyrow b{font-size:14px;word-break:break-all}
+.copyrow button{border:1px solid var(--gold);background:transparent;color:var(--gold);border-radius:8px;padding:5px 10px;font-size:12px;flex:none}
+.waiting{display:flex;align-items:center;justify-content:center;gap:10px;font-size:13px;color:var(--muted);margin:12px 0}
+.spinner{width:18px;height:18px;border-radius:50%;border:3px solid var(--line);border-top-color:var(--gold);animation:spin 1s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+#toast{position:fixed;left:50%;bottom:24px;transform:translate(-50%,40px);opacity:0;z-index:60;background:#1c0d15;border:1px solid var(--gold);padding:12px 20px;border-radius:999px;font-size:14px;transition:.35s;pointer-events:none;max-width:92vw;text-align:center}
+#toast.on{transform:translate(-50%,0);opacity:1}
+#confetti{position:fixed;inset:0;pointer-events:none;z-index:70}
+@media(prefers-reduced-motion:reduce){*{animation:none!important}}
+</style>
+</head>
+<body>
+
+<div id="demoBar" class="demo" hidden>MODO DEMO · sin cobros reales · configurá Supabase en el código para producción</div>
+
+<header>
+  <div class="wrap">
+    <div class="logo">MEGA RULETA</div>
+    <div class="hdr-right">
+      <div class="chip">🎟️ Fichas: <b id="tokCount">0</b></div>
+      <button class="icon-btn" id="soundBtn" aria-label="Activar o silenciar sonido" title="Sonido">🔊</button>
+    </div>
+  </div>
+</header>
+
+<main class="wrap">
+  <div class="hero">
+    <h1>GIRÁ Y GANÁ</h1>
+    <p>Diez premios en juego. Un solo tiro puede cambiarte el día.</p>
+    <div class="jackpot">PREMIO MAYOR <b>$20.000.000</b></div>
+  </div>
+
+  <div class="stage">
+    <div class="wheel-wrap" id="wheelWrap">
+      <svg class="pointer" viewBox="0 0 60 80" aria-hidden="true"><defs><linearGradient id="pg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff3c4"/><stop offset=".5" stop-color="#f5c542"/><stop offset="1" stop-color="#b8860b"/></linearGradient></defs><path d="M30 78 L4 22 A28 28 0 1 1 56 22 Z" fill="url(#pg)" stroke="#3a0a12" stroke-width="3"/><circle cx="30" cy="24" r="8" fill="#c1121f" stroke="#3a0a12" stroke-width="2"/></svg>
+      <canvas id="wheel"></canvas>
+      <button class="hub ready" id="hub">GIRAR</button>
+    </div>
+
+    <aside class="panel" id="buyPanel">
+      <h2>TU FICHA</h2>
+      <div class="price"><b id="priceTxt">$10.000</b><span>por tiro · pago por transferencia</span></div>
+
+      <div class="have" id="haveBox">
+        <b id="haveTxt"></b>
+        <button class="btn" id="spinBtn" style="margin-top:10px">🎰 GIRAR AHORA</button>
+      </div>
+
+      <form id="buyForm" novalidate>
+        <div class="field"><label for="fName">Nombre y apellido</label><input id="fName" autocomplete="name" maxlength="80" required></div>
+        <div class="field"><label for="fPhone">WhatsApp / teléfono (para coordinar tu premio)</label><input id="fPhone" type="tel" autocomplete="tel" maxlength="20" required></div>
+        <div class="field"><label for="fMail">Email</label><input id="fMail" type="email" autocomplete="email" maxlength="120" required></div>
+        <label class="check"><input type="checkbox" id="fAdult"> Declaro ser mayor de 18 años.</label>
+        <label class="check"><input type="checkbox" id="fTerms"> Acepto las bases y condiciones y que, si gano un premio mayor, se muestre mi nombre de pila e inicial en la lista de ganadores.</label>
+        <button class="btn" type="submit" id="buyBtn">COMPRAR FICHA · <span class="pp">$10.000</span></button>
+        <div class="err" id="buyErr" role="alert"></div>
+      </form>
+
+      <div class="steps">
+        <div><b>1</b>Comprá tu ficha</div>
+        <div><b>2</b>Transferí y se acredita sola</div>
+        <div><b>3</b>Girá y mirá tu premio</div>
+      </div>
+    </aside>
+  </div>
+
+  <section class="block" id="winnersBlock">
+    <div class="ticker" id="ticker"><div class="ticker-track" id="tickerTrack"></div></div>
+  </section>
+
+  <section class="block" id="premios">
+    <h3>PREMIOS Y PROBABILIDADES</h3>
+    <p class="sub">Transparencia total: estas son las probabilidades reales de cada gajo. El resultado se sortea en el servidor, no en tu dispositivo.</p>
+    <div class="prize-grid" id="prizeGrid"></div>
+  </section>
+
+  <section class="block">
+    <h3>PREGUNTAS FRECUENTES</h3>
+    <details><summary>¿Cómo se decide el premio?</summary><p>Al girar, el servidor sortea el resultado con un generador aleatorio criptográfico y recién después la rueda se anima hasta ese gajo. La animación es solo visual: no se puede influir en el resultado.</p></details>
+    <details><summary>¿Cuándo se acredita mi ficha?</summary><p>Apenas se confirma tu transferencia. La pantalla se actualiza sola; si cerrás la página, tu ficha queda guardada en este dispositivo.</p></details>
+    <details><summary>¿Cómo cobro mi premio?</summary><p>Quedamos registrados con tu nombre, teléfono y email. Te contactamos para validar tu identidad y coordinar el pago o la entrega.</p></details>
+    <details><summary>¿Qué pasa con “Otro tiro”?</summary><p>Se acredita una ficha gratis en tu cuenta al instante y podés girar de nuevo.</p></details>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <p><strong>+18 · Juego responsable.</strong> Jugar implica riesgo de perder el dinero apostado. Jugá solo con dinero que puedas permitirte perder. Si sentís que el juego deja de ser un entretenimiento, pedí ayuda.</p>
+    <p id="licenseTxt" style="margin-top:8px"></p>
+  </div>
+</footer>
+
+<!-- Modal pago -->
+<div class="modal" id="payModal" role="dialog" aria-modal="true" aria-labelledby="payTitle">
+  <div class="card">
+    <h4 id="payTitle">PAGÁ TU FICHA</h4>
+    <div class="big" id="payAmount">$10.000</div>
+    <div id="payBody"></div>
+    <div class="waiting"><div class="spinner"></div><span>Esperando confirmación del pago… se acredita automáticamente</span></div>
+    <button class="btn ghost" id="payClose">Cerrar (tu pago sigue en curso)</button>
+  </div>
+</div>
+
+<!-- Modal resultado -->
+<div class="modal" id="resModal" role="dialog" aria-modal="true" aria-labelledby="resTitle">
+  <div class="card">
+    <h4 id="resTitle"></h4>
+    <div class="big" id="resPrize"></div>
+    <p id="resMsg"></p>
+    <button class="btn" id="resAgain"></button>
+    <button class="btn ghost" id="resClose">Cerrar</button>
+  </div>
+</div>
+
+<div id="toast" role="status" aria-live="polite"></div>
+<canvas id="confetti"></canvas>
+
+<script>
+(() => {
+'use strict';
+
+/* ====================== CONFIGURACIÓN ====================== */
+const CONFIG = {
+  SUPABASE_URL: 'https://wvfkrxirkobqblpwmhbr.supabase.co',
+  SUPABASE_ANON_KEY: 'sb_publishable_shyl_K_oTcylWmrb3w7o8g_UAnBnWcH',   // clave publicable (segura para el navegador)
+  PRICE: 10000,            // solo para mostrar; el precio real lo fija la base (settings.spin_price)
+  LICENSE_TEXT: 'Operador autorizado — N.º de licencia/habilitación: COMPLETAR ANTES DE PUBLICAR'
+};
+const DEMO = !CONFIG.SUPABASE_URL || !CONFIG.SUPABASE_ANON_KEY;
+const sb = DEMO ? null : window.supabase.createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_ANON_KEY);
+
+/* ====================== UTILIDADES ====================== */
+const $ = (s, r = document) => r.querySelector(s);
+const TAU = Math.PI * 2;
+const mod = (a, n) => ((a % n) + n) % n;
+const fmt = n => new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'ARS', maximumFractionDigits: 0 }).format(n);
+const store = {
+  get(k, d) { try { const v = JSON.parse(localStorage.getItem(k)); return v ?? d; } catch { return d; } },
+  set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch {} },
+  del(k) { try { localStorage.removeItem(k); } catch {} }
+};
+function toast(msg, ms = 3200) {
+  const t = $('#toast'); t.textContent = msg; t.classList.add('on');
+  clearTimeout(toast._t); toast._t = setTimeout(() => t.classList.remove('on'), ms);
+}
+
+/* ====================== DATOS ====================== */
+// Solo se usa en modo demo (en producción vienen de la base con get_wheel()).
+const DEMO_PRIZES = [
+  { position:0, label:'$20.000.000', kind:'cash', amount:20000000, color:'#8b0f24', w:2 },
+  { position:1, label:'SUERTE LA PRÓXIMA', kind:'none', amount:0, color:'#2a2230', w:56370 },
+  { position:2, label:'$1.000.000', kind:'cash', amount:1000000, color:'#0d5c47', w:100 },
+  { position:3, label:'$10.000', kind:'cash', amount:10000, color:'#1b3a8c', w:15000 },
+  { position:4, label:'AUTO 0 KM', kind:'item', amount:15000000, color:'#b8860b', w:3 },
+  { position:5, label:'$200.000', kind:'cash', amount:200000, color:'#5e2a8c', w:500 },
+  { position:6, label:'$10.000.000', kind:'cash', amount:10000000, color:'#a3121f', w:5 },
+  { position:7, label:'OTRO TIRO', kind:'free_spin', amount:0, color:'#0b6a78', w:8000 },
+  { position:8, label:'$5.000.000', kind:'cash', amount:5000000, color:'#0d5c47', w:20 },
+  { position:9, label:'$5.000', kind:'cash', amount:5000, color:'#1b3a8c', w:20000 }
+];
+let prizes = [];
+let tokens = store.get('mr_tokens', []);   // códigos de fichas de este dispositivo
+let spinning = false;
+let rot = -Math.PI / 2;                    // rotación actual de la rueda
+let spinAnim = null;
+let soundOn = store.get('mr_sound', true);
+
+function saveTokens() { store.set('mr_tokens', tokens); renderTokens(); }
+
+async function loadWheel() {
+  if (DEMO) {
+    const total = DEMO_PRIZES.reduce((s, p) => s + p.w, 0);
+    prizes = DEMO_PRIZES.map(p => ({ ...p, probability: p.w / total }));
+  } else {
+    const { data, error } = await sb.rpc('get_wheel');
+    if (error || !data || !data.length) { toast('No se pudo cargar la ruleta. Reintentá en unos segundos.'); return; }
+    prizes = data.map(p => ({ ...p, probability: Number(p.probability), amount: Number(p.amount) }));
+  }
+  prizes.sort((a, b) => a.position - b.position);
+  renderPrizes();
+}
+
+async function syncTokens() {
+  if (DEMO || !tokens.length) return;
+  const { data } = await sb.rpc('check_tokens', { p_codes: tokens });
+  if (Array.isArray(data)) {
+    const avail = new Set(data.filter(t => t.status === 'available').map(t => t.code));
+    tokens = tokens.filter(c => avail.has(c));
+    saveTokens();
+  }
+}
+
+/* ====================== AUDIO ====================== */
+let actx = null;
+function ac() {
+  if (!actx) { try { actx = new (window.AudioContext || window.webkitAudioContext)(); } catch {} }
+  if (actx && actx.state === 'suspended') actx.resume();
+  return actx;
+}
+function beep(freq, dur, type = 'square', vol = .05, delay = 0) {
+  if (!soundOn) return; const c = ac(); if (!c) return;
+  const o = c.createOscillator(), g = c.createGain(), t = c.currentTime + delay;
+  o.type = type; o.frequency.setValueAtTime(freq, t);
+  g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(.0001, t + dur);
+  o.connect(g); g.connect(c.destination); o.start(t); o.stop(t + dur + .02);
+}
+const sfx = {
+  tick() { beep(820 + Math.random() * 120, .035, 'square', .035); },
+  win() { [523, 659, 784, 1047, 1319].forEach((f, i) => beep(f, .3, 'triangle', .09, i * .11)); },
+  free() { [660, 880, 1100].forEach((f, i) => beep(f, .2, 'sine', .09, i * .09)); },
+  lose() { [330, 262].forEach((f, i) => beep(f, .35, 'sine', .07, i * .2)); },
+  ok() { [784, 988].forEach((f, i) => beep(f, .18, 'sine', .08, i * .1)); }
+};
+function paintSound() { $('#soundBtn').textContent = soundOn ? '🔊' : '🔇'; }
+
+/* ====================== RUEDA (canvas) ====================== */
+const canvas = $('#wheel'), ctx = canvas.getContext('2d');
+const pointerEl = $('.pointer');
+const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+function splitLabel(label) {
+  if (label.length > 11 && label.includes(' ')) {
+    const words = label.split(' '); let best = 1, diff = 1e9;
+    for (let i = 1; i < words.length; i++) {
+      const d = Math.abs(words.slice(0, i).join(' ').length - words.slice(i).join(' ').length);
+      if (d < diff) { diff = d; best = i; }
+    }
+    return [words.slice(0, best).join(' '), words.slice(best).join(' ')];
+  }
+  return [label];
+}
+
+function draw(now) {
+  const dpr = window.devicePixelRatio || 1;
+  const size = canvas.clientWidth;
+  if (!size) return;
+  if (canvas.width !== Math.round(size * dpr)) { canvas.width = canvas.height = Math.round(size * dpr); }
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  ctx.clearRect(0, 0, size, size);
+  const c = size / 2, R = size * .485;
+
+  // aro exterior dorado
+  const rim = ctx.createRadialGradient(c, c, R * .82, c, c, R);
+  rim.addColorStop(0, '#6b4a06'); rim.addColorStop(.35, '#f5c542'); rim.addColorStop(.7, '#fff0b0'); rim.addColorStop(1, '#8a6208');
+  ctx.beginPath(); ctx.arc(c, c, R, 0, TAU); ctx.fillStyle = rim; ctx.fill();
+  ctx.beginPath(); ctx.arc(c, c, R * .87, 0, TAU); ctx.fillStyle = '#1a0a10'; ctx.fill();
+
+  // focos
+  const bulbs = 24, rb = R * .935;
+  const phase = Math.floor(now / (spinning ? 90 : 380));
+  for (let i = 0; i < bulbs; i++) {
+    const a = (i / bulbs) * TAU, x = c + Math.cos(a) * rb, y = c + Math.sin(a) * rb;
+    const lit = (i + phase) % 2 === 0;
+    ctx.beginPath(); ctx.arc(x, y, R * .021, 0, TAU);
+    if (lit) { ctx.shadowColor = '#fff3a0'; ctx.shadowBlur = 14; ctx.fillStyle = '#fffbe0'; }
+    else { ctx.shadowBlur = 0; ctx.fillStyle = '#7a5a10'; }
+    ctx.fill(); ctx.shadowBlur = 0;
+  }
+
+  const n = prizes.length;
+  if (!n) return;
+  const seg = TAU / n, rs = R * .85;
+
+  for (let i = 0; i < n; i++) {
+    const a0 = rot + i * seg, a1 = a0 + seg;
+    ctx.beginPath(); ctx.moveTo(c, c); ctx.arc(c, c, rs, a0, a1); ctx.closePath();
+    const g = ctx.createRadialGradient(c, c, rs * .15, c, c, rs);
+    g.addColorStop(0, shade(prizes[i].color, .35)); g.addColorStop(1, prizes[i].color);
+    ctx.fillStyle = g; ctx.fill();
+    ctx.strokeStyle = 'rgba(245,197,66,.85)'; ctx.lineWidth = 2; ctx.stroke();
+
+    // texto
+    ctx.save();
+    ctx.translate(c, c); ctx.rotate(a0 + seg / 2);
+    ctx.textAlign = 'right'; ctx.textBaseline = 'middle';
+    const lines = splitLabel(prizes[i].label);
+    const maxW = rs * .56;
+    let fs = rs * (lines.length > 1 ? .095 : .115);
+    ctx.font = `800 ${fs}px Poppins, sans-serif`;
+    const widest = Math.max(...lines.map(l => ctx.measureText(l).width));
+    if (widest > maxW) { fs *= maxW / widest; ctx.font = `800 ${fs}px Poppins, sans-serif`; }
+    ctx.lineJoin = 'round'; ctx.lineWidth = fs * .18; ctx.strokeStyle = 'rgba(0,0,0,.55)'; ctx.fillStyle = '#fff8e1';
+    const x = rs * .93, lh = fs * 1.08, y0 = -((lines.length - 1) * lh) / 2;
+    lines.forEach((l, k) => { ctx.strokeText(l, x, y0 + k * lh); ctx.fillText(l, x, y0 + k * lh); });
+    ctx.restore();
+  }
+
+  // borde interno y centro
+  ctx.beginPath(); ctx.arc(c, c, rs, 0, TAU); ctx.strokeStyle = '#f5c542'; ctx.lineWidth = 4; ctx.stroke();
+  ctx.beginPath(); ctx.arc(c, c, R * .2, 0, TAU); ctx.fillStyle = '#1a0a10'; ctx.fill();
+}
+
+function shade(hex, amt) {
+  const n = parseInt(hex.slice(1), 16);
+  const r = Math.min(255, ((n >> 16) & 255) + 255 * amt), g = Math.min(255, ((n >> 8) & 255) + 255 * amt), b = Math.min(255, (n & 255) + 255 * amt);
+  return `rgb(${r | 0},${g | 0},${b | 0})`;
+}
+
+const idxAt = r => { const n = prizes.length; return Math.floor(mod(-Math.PI / 2 - r, TAU) / (TAU / n)) % n; };
+
+function frame(now) {
+  if (spinAnim) spinAnim(now);
+  else if (!reduceMotion) rot += .0016;
+  draw(now);
+  requestAnimationFrame(frame);
+}
+
+function animateTo(position) {
+  return new Promise(resolve => {
+    const n = prizes.length, seg = TAU / n;
+    const jitter = (Math.random() - .5) * seg * .7;
+    const desired = -Math.PI / 2 - (position + .5) * seg + jitter;
+    const cur = rot;
+    const target = cur + (reduceMotion ? 2 : 6 + Math.floor(Math.random() * 3)) * TAU + mod(desired - cur, TAU);
+    const dur = reduceMotion ? 1800 : 7200, t0 = performance.now();
+    let last = idxAt(cur);
+    spinAnim = now => {
+      const p = Math.min(1, (now - t0) / dur), e = 1 - Math.pow(1 - p, 4);
+      rot = cur + (target - cur) * e;
+      const i = idxAt(rot);
+      if (i !== last) { last = i; sfx.tick(); pointerEl.animate([{ transform: 'translateX(-50%) rotate(0)' }, { transform: 'translateX(-50%) rotate(-16deg)' }, { transform: 'translateX(-50%) rotate(0)' }], { duration: 110 }); }
+      if (p >= 1) { spinAnim = null; resolve(); }
+    };
+  });
+}
+
+/* ====================== CONFETI ====================== */
+const cv = $('#confetti'), cx = cv.getContext('2d');
+let parts = [], confettiOn = false;
+function confetti(count = 160) {
+  if (reduceMotion) return;
+  cv.width = innerWidth; cv.height = innerHeight;
+  const cols = ['#f5c542', '#ffe08a', '#c1121f', '#ffffff', '#2ecc71', '#4da3ff'];
+  for (let i = 0; i < count; i++) parts.push({
+    x: innerWidth / 2 + (Math.random() - .5) * 200, y: innerHeight * .45, vx: (Math.random() - .5) * 16, vy: -Math.random() * 15 - 4,
+    s: 5 + Math.random() * 7, r: Math.random() * TAU, vr: (Math.random() - .5) * .4, c: cols[(Math.random() * cols.length) | 0], life: 1
+  });
+  if (!confettiOn) { confettiOn = true; requestAnimationFrame(stepConfetti); }
+}
+function stepConfetti() {
+  cx.clearRect(0, 0, cv.width, cv.height);
+  parts = parts.filter(p => p.life > 0 && p.y < cv.height + 30);
+  for (const p of parts) {
+    p.vy += .35; p.x += p.vx; p.y += p.vy; p.vx *= .99; p.r += p.vr; p.life -= .004;
+    cx.save(); cx.translate(p.x, p.y); cx.rotate(p.r); cx.globalAlpha = Math.max(0, p.life); cx.fillStyle = p.c; cx.fillRect(-p.s / 2, -p.s / 4, p.s, p.s / 2); cx.restore();
+  }
+  if (parts.length) requestAnimationFrame(stepConfetti); else { confettiOn = false; cx.clearRect(0, 0, cv.width, cv.height); }
+}
+
+/* ====================== UI ====================== */
+function renderTokens() {
+  $('#tokCount').textContent = tokens.length;
+  const box = $('#haveBox');
+  if (tokens.length) {
+    box.classList.add('on');
+    $('#haveTxt').textContent = tokens.length === 1 ? '¡Tenés 1 ficha lista para girar!' : `¡Tenés ${tokens.length} fichas listas para girar!`;
+  } else box.classList.remove('on');
+  const hub = $('#hub');
+  hub.textContent = tokens.length ? 'GIRAR' : 'FICHA';
+  hub.classList.toggle('ready', tokens.length > 0 && !spinning);
+  hub.disabled = spinning; $('#spinBtn').disabled = spinning;
+}
+
+function renderPrizes() {
+  const g = $('#prizeGrid'); g.textContent = '';
+  const sorted = [...prizes].sort((a, b) => b.amount - a.amount || a.position - b.position);
+  for (const p of sorted) {
+    const d = document.createElement('div'); d.className = 'prize'; d.style.borderLeftColor = p.color;
+    const b = document.createElement('b'); b.textContent = p.label;
+    const s = document.createElement('small');
+    const pct = p.probability * 100;
+    s.textContent = (pct >= 1 ? pct.toLocaleString('es-AR', { maximumFractionDigits: 1 }) : pct.toLocaleString('es-AR', { maximumFractionDigits: 3 })) + ' %';
+    d.append(b, s); g.append(d);
+  }
+}
+
+async function loadWinners() {
+  if (DEMO) return;
+  const { data } = await sb.rpc('recent_winners');
+  if (!Array.isArray(data) || !data.length) return;
+  const tr = $('#tickerTrack'); tr.textContent = '';
+  data.forEach(w => { const s = document.createElement('span'); s.textContent = `🏆 ${w.name} ganó ${w.prize}`; tr.append(s); });
+  $('#ticker').classList.add('on');
+}
+
+/* ====================== COMPRA ====================== */
+let pollTimer = null, pollUntil = 0;
+const openModal = id => $(id).classList.add('on');
+const closeModal = id => $(id).classList.remove('on');
+
+async function copy(text, btn) {
+  try { await navigator.clipboard.writeText(text); const o = btn.textContent; btn.textContent = '¡Copiado!'; setTimeout(() => btn.textContent = o, 1200); }
+  catch { toast('No se pudo copiar, hacelo manualmente.'); }
+}
+function copyRow(label, value) {
+  const row = document.createElement('div'); row.className = 'copyrow';
+  const left = document.createElement('div'); const sm = document.createElement('small'); sm.textContent = label;
+  const b = document.createElement('b'); b.textContent = value; left.append(sm, b);
+  const btn = document.createElement('button'); btn.type = 'button'; btn.textContent = 'Copiar'; btn.onclick = () => copy(value, btn);
+  row.append(left, btn); return row;
+}
+
+function showPayModal(info) {
+  $('#payAmount').textContent = fmt(info.price);
+  const body = $('#payBody'); body.textContent = '';
+  if (info.checkout_url) {
+    const p = document.createElement('p'); p.textContent = 'Pagá con transferencia a través de Galiopay. Se abre en una pestaña nueva.';
+    const a = document.createElement('button'); a.className = 'btn'; a.type = 'button'; a.textContent = '💸 PAGAR CON GALIOPAY';
+    a.onclick = () => window.open(info.checkout_url, '_blank', 'noopener');
+    body.append(p, a);
+  } else if (info.transfer) {
+    const p = document.createElement('p'); p.textContent = 'Hacé una transferencia por el monto exacto y poné la referencia en el concepto:';
+    body.append(p);
+    if (info.transfer.alias) body.append(copyRow('Alias', info.transfer.alias));
+    if (info.transfer.cbu) body.append(copyRow('CBU / CVU', info.transfer.cbu));
+    if (info.transfer.holder) body.append(copyRow('Titular', info.transfer.holder));
+  }
+  body.append(copyRow('Referencia (concepto)', info.reference));
+  openModal('#payModal');
+}
+
+function startPolling(ref) {
+  clearInterval(pollTimer); pollUntil = Date.now() + 30 * 60 * 1000;
+  const tick = async () => {
+    if (Date.now() > pollUntil) { clearInterval(pollTimer); return; }
+    try {
+      const { data } = await sb.rpc('get_payment_status', { p_reference: ref });
+      if (data && data.status === 'paid' && data.token_code) {
+        clearInterval(pollTimer); store.del('mr_pending');
+        if (!tokens.includes(data.token_code)) tokens.push(data.token_code);
+        saveTokens(); closeModal('#payModal'); sfx.ok(); confetti(70);
+        toast('¡Ficha acreditada! Ya podés girar 🎰');
+        $('#wheelWrap').scrollIntoView({ behavior: 'smooth', block: 'center' });
+      } else if (data && (data.status === 'rejected' || data.status === 'expired')) {
+        clearInterval(pollTimer); store.del('mr_pending'); closeModal('#payModal'); toast('El pago fue rechazado o expiró.');
+      }
+    } catch {}
+  };
+  pollTimer = setInterval(tick, 4000); tick();
+}
+
+function validate() {
+  const name = $('#fName').value.trim(), phone = $('#fPhone').value.trim(), mail = $('#fMail').value.trim();
+  if (name.length < 3) return 'Ingresá tu nombre y apellido.';
+  if (phone.replace(/\D/g, '').length < 8) return 'Ingresá un teléfono válido.';
+  if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(mail)) return 'Ingresá un email válido.';
+  if (!$('#fAdult').checked) return 'Tenés que ser mayor de 18 años para jugar.';
+  if (!$('#fTerms').checked) return 'Tenés que aceptar las bases y condiciones.';
+  return '';
+}
+
+async function buy(e) {
+  e.preventDefault();
+  const err = validate(); $('#buyErr').textContent = err; if (err) return;
+  const btn = $('#buyBtn'); btn.disabled = true;
+  try {
+    if (DEMO) {
+      tokens.push('demo-' + crypto.randomUUID()); saveTokens(); sfx.ok(); confetti(60);
+      toast('Demo: ficha acreditada sin cobro real.');
+    } else {
+      const r = await fetch(CONFIG.SUPABASE_URL + '/functions/v1/create-payment', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', apikey: CONFIG.SUPABASE_ANON_KEY },
+        body: JSON.stringify({ full_name: $('#fName').value, phone: $('#fPhone').value, email: $('#fMail').value, adult: true, terms: true })
+      });
+      const info = await r.json();
+      if (!r.ok) {
+        $('#buyErr').textContent = info.error === 'demasiados_intentos' ? 'Demasiados intentos. Probá en una hora.' : 'No pudimos iniciar el pago. Revisá tus datos e intentá de nuevo.';
+        return;
+      }
+      store.set('mr_pending', info);
+      showPayModal(info); startPolling(info.reference);
+    }
+  } catch { $('#buyErr').textContent = 'Error de conexión. Intentá de nuevo.'; }
+  finally { btn.disabled = false; }
+}
+
+/* ====================== TIRO ====================== */
+function demoSpin() {
+  const total = prizes.reduce((s, p) => s + p.w, 0);
+  const r = crypto.getRandomValues(new Uint32Array(1))[0] % total;
+  let acc = 0;
+  for (const p of prizes) { acc += p.w; if (r < acc) return { position: p.position, label: p.label, kind: p.kind, amount: p.amount, new_token_code: p.kind === 'free_spin' ? 'demo-' + crypto.randomUUID() : null }; }
+}
+
+async function spin() {
+  if (spinning) return;
+  if (!tokens.length) { $('#buyPanel').scrollIntoView({ behavior: 'smooth', block: 'center' }); $('#fName').focus({ preventScroll: true }); return; }
+  if (!prizes.length) return;
+  ac(); spinning = true; renderTokens();
+  const code = tokens[0];
+  let res;
+  try {
+    if (DEMO) res = demoSpin();
+    else {
+      const { data, error } = await sb.rpc('do_spin', { p_code: code });
+      if (error) throw error; res = data;
+    }
+  } catch (e) {
+    spinning = false;
+    if (/ficha_usada|ficha_invalida/.test(e.message || '')) { tokens = tokens.filter(c => c !== code); saveTokens(); toast('Esa ficha ya no es válida.'); }
+    else { renderTokens(); toast('No se pudo realizar el tiro. Tu ficha sigue disponible.'); }
+    return;
+  }
+  tokens = tokens.filter(c => c !== code);
+  if (res.new_token_code) tokens.push(res.new_token_code);
+  store.set('mr_tokens', tokens);
+  await animateTo(res.position);
+  spinning = false; renderTokens(); showResult(res);
+  loadWinners();
+}
+
+function showResult(res) {
+  const win = res.kind === 'cash' || res.kind === 'item';
+  const free = res.kind === 'free_spin';
+  $('#resTitle').textContent = win ? '¡GANASTE!' : free ? '¡OTRO TIRO!' : 'SUERTE LA PRÓXIMA';
+  $('#resPrize').textContent = win ? res.label : free ? 'Ficha gratis' : '—';
+  $('#resMsg').textContent = win
+    ? 'Registramos tu premio. Vamos a contactarte por el teléfono y el email con los que compraste para validar tu identidad y coordinar el pago o la entrega.'
+    : free ? 'Sumamos una ficha extra a tu cuenta. ¡Girá de nuevo sin costo!'
+    : 'Esta vez no hubo premio. Recordá jugar con responsabilidad.';
+  const again = $('#resAgain');
+  again.textContent = tokens.length ? '🎰 GIRAR DE NUEVO' : 'COMPRAR OTRA FICHA';
+  again.onclick = () => { closeModal('#resModal'); if (tokens.length) setTimeout(spin, 250); else { $('#buyPanel').scrollIntoView({ behavior: 'smooth', block: 'center' }); } };
+  if (win) { sfx.win(); confetti(win && res.amount >= 1000000 ? 320 : 160); } else if (free) { sfx.free(); confetti(80); } else sfx.lose();
+  openModal('#resModal');
+}
+
+/* ====================== INIT ====================== */
+$('#buyForm').addEventListener('submit', buy);
+$('#hub').addEventListener('click', spin);
+$('#spinBtn').addEventListener('click', spin);
+$('#payClose').addEventListener('click', () => closeModal('#payModal'));
+$('#resClose').addEventListener('click', () => closeModal('#resModal'));
+$('#soundBtn').addEventListener('click', () => { soundOn = !soundOn; store.set('mr_sound', soundOn); paintSound(); if (soundOn) { ac(); sfx.ok(); } });
+document.addEventListener('keydown', e => { if (e.key === 'Escape') { closeModal('#payModal'); closeModal('#resModal'); } });
+addEventListener('resize', () => { cv.width = innerWidth; cv.height = innerHeight; });
+
+$('#licenseTxt').textContent = CONFIG.LICENSE_TEXT;
+$('#priceTxt').textContent = fmt(CONFIG.PRICE);
+document.querySelectorAll('.pp').forEach(el => el.textContent = fmt(CONFIG.PRICE));
+if (DEMO) $('#demoBar').hidden = false;
+paintSound();
+
+(async () => {
+  await loadWheel();
+  renderTokens();
+  requestAnimationFrame(frame);
+  await syncTokens();
+  loadWinners();
+  const pending = store.get('mr_pending', null);
+  if (pending && !DEMO) { showPayModal(pending); startPolling(pending.reference); }
+})();
+})();
+</script>
+</body>
+</html>
