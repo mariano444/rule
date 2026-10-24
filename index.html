@@ -523,13 +523,23 @@ function copyRow(label, value) {
   row.append(left, btn); return row;
 }
 
-function showPayModal(info) {
+function showPayModal(info, returning = false) {
   $('#payAmount').textContent = fmt(info.price);
+  $('#payTitle').textContent = returning ? 'VERIFICANDO TU PAGO' : (info.checkout_url ? 'REDIRIGIENDO A GALIOPAY' : 'PAGÁ TU FICHA');
   const body = $('#payBody'); body.textContent = '';
-  if (info.checkout_url) {
-    const p = document.createElement('p'); p.textContent = 'Pagá con transferencia a través de Galiopay. Se abre en una pestaña nueva.';
-    const a = document.createElement('button'); a.className = 'btn'; a.type = 'button'; a.textContent = '💸 PAGAR CON GALIOPAY';
-    a.onclick = () => window.open(info.checkout_url, '_blank', 'noopener');
+  if (returning) {
+    const p = document.createElement('p');
+    p.textContent = 'Si ya hiciste la transferencia, esperá unos segundos: tu ficha se acredita sola apenas Galiopay confirma el pago.';
+    body.append(p);
+    if (info.checkout_url) {
+      const a = document.createElement('button'); a.className = 'btn ghost'; a.type = 'button'; a.textContent = 'Volver a Galiopay para pagar';
+      a.onclick = () => location.assign(info.checkout_url);
+      body.append(a);
+    }
+  } else if (info.checkout_url) {
+    const p = document.createElement('p'); p.textContent = 'Te llevamos a Galiopay para hacer la transferencia. Al terminar volvés acá y tu ficha se acredita sola.';
+    const a = document.createElement('button'); a.className = 'btn'; a.type = 'button'; a.textContent = '💸 IR A PAGAR CON GALIOPAY';
+    a.onclick = () => location.assign(info.checkout_url);
     body.append(p, a);
   } else if (info.transfer) {
     const p = document.createElement('p'); p.textContent = 'Hacé una transferencia por el monto exacto y poné la referencia en el concepto:';
@@ -588,11 +598,16 @@ async function buy(e) {
       });
       const info = await r.json();
       if (!r.ok) {
-        $('#buyErr').textContent = info.error === 'demasiados_intentos' ? 'Demasiados intentos. Probá en una hora.' : 'No pudimos iniciar el pago. Revisá tus datos e intentá de nuevo.';
+        $('#buyErr').textContent =
+          info.error === 'demasiados_intentos' ? 'Demasiados intentos. Probá en una hora.' :
+          info.error === 'galiopay_error' ? `No pudimos conectar con Galiopay (código ${info.status}). Intentá de nuevo en unos minutos.` :
+          info.error === 'galiopay_no_configurado' ? 'El cobro todavía no está configurado.' :
+          'No pudimos iniciar el pago. Revisá tus datos e intentá de nuevo.';
         return;
       }
       store.set('mr_pending', info);
       showPayModal(info); startPolling(info.reference);
+      if (info.checkout_url) setTimeout(() => location.assign(info.checkout_url), 1300);   // redirección automática a Galiopay
     }
   } catch { $('#buyErr').textContent = 'Error de conexión. Intentá de nuevo.'; }
   finally { btn.disabled = false; }
@@ -672,7 +687,12 @@ paintSound();
   await syncTokens();
   loadWinners();
   const pending = store.get('mr_pending', null);
-  if (pending && !DEMO) { showPayModal(pending); startPolling(pending.reference); }
+  const back = new URLSearchParams(location.search).get('pago');       // ?pago=ok | ?pago=error (vuelta desde Galiopay)
+  if (back) history.replaceState(null, '', location.pathname);
+  if (pending && !DEMO) {
+    if (back === 'error') { clearInterval(pollTimer); store.del('mr_pending'); toast('El pago no se completó. Podés intentarlo de nuevo.', 5000); }
+    else { showPayModal(pending, true); startPolling(pending.reference); }
+  }
 })();
 })();
 </script>
