@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="es-AR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>Mega Ruleta · Administración</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+:root{--gold:#f5c542;--bg:#0f0a0d;--panel:#1b1218;--line:rgba(245,197,66,.25);--text:#fff6e0;--muted:#b9a98a;--err:#ff6b6b;--ok:#2ecc71}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:system-ui,sans-serif;background:var(--bg);color:var(--text);padding:20px;max-width:1100px;margin:0 auto}
+h1{color:var(--gold);margin-bottom:14px}
+h2{color:var(--gold);font-size:18px;margin:26px 0 10px}
+input{background:#241820;border:1px solid var(--line);color:var(--text);padding:10px 12px;border-radius:8px;font-size:14px}
+button{background:var(--gold);color:#3a0a12;border:0;border-radius:8px;padding:9px 14px;font-weight:700;cursor:pointer}
+button.sec{background:transparent;color:var(--gold);border:1px solid var(--gold)}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px;margin-top:14px}
+.stat{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px}
+.stat small{color:var(--muted);display:block;font-size:12px}
+.stat b{font-size:22px}
+table{width:100%;border-collapse:collapse;background:var(--panel);border-radius:12px;overflow:hidden;font-size:13px}
+th,td{padding:9px 10px;text-align:left;border-bottom:1px solid var(--line)}
+th{color:var(--muted);font-weight:600}
+.msg{margin-top:10px;font-size:13px;min-height:18px}
+.empty{color:var(--muted);font-size:13px;padding:8px 0}
+.warn{background:rgba(255,107,107,.1);border:1px solid var(--err);border-radius:10px;padding:10px 12px;font-size:13px;margin-top:12px}
+.scroll{overflow-x:auto}
+</style>
+</head>
+<body>
+<h1>Mega Ruleta · Administración</h1>
+
+<div class="row">
+  <input id="key" type="password" placeholder="Clave de administrador" autocomplete="off" style="flex:1;min-width:220px">
+  <button id="load">Entrar / actualizar</button>
+</div>
+<div class="msg" id="msg"></div>
+
+<div id="app" hidden>
+  <div class="stats" id="stats"></div>
+  <div class="warn" id="rtpWarn" hidden></div>
+
+  <h2>Pagos pendientes de acreditar (modo transferencia manual)</h2>
+  <div class="scroll"><table id="tPay"></table></div>
+
+  <h2>Premios por entregar</h2>
+  <div class="scroll"><table id="tPrize"></table></div>
+</div>
+
+<script>
+// Pegá acá los mismos datos que en index.html
+const SUPABASE_URL = 'https://wvfkrxirkobqblpwmhbr.supabase.co';
+const SUPABASE_ANON_KEY = 'sb_publishable_shyl_K_oTcylWmrb3w7o8g_UAnBnWcH';
+const sb = (SUPABASE_URL && SUPABASE_ANON_KEY) ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
+
+const $ = s => document.querySelector(s);
+const fmt = n => new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'ARS', maximumFractionDigits: 0 }).format(n);
+const when = s => new Date(s).toLocaleString('es-AR');
+const setMsg = (t, bad) => { const m = $('#msg'); m.textContent = t; m.style.color = bad ? 'var(--err)' : 'var(--ok)'; };
+
+function cell(tr, text) { const td = document.createElement('td'); td.textContent = text; tr.append(td); return td; }
+function table(el, heads, rows, actionLabel, onAction) {
+  el.textContent = '';
+  if (!rows.length) { const tr = document.createElement('tr'); cell(tr, 'Nada pendiente.'); el.append(tr); return; }
+  const hr = document.createElement('tr'); heads.concat(['']).forEach(h => { const th = document.createElement('th'); th.textContent = h; hr.append(th); }); el.append(hr);
+  rows.forEach(r => {
+    const tr = document.createElement('tr');
+    r.cells.forEach(c => cell(tr, c));
+    const td = document.createElement('td'); const b = document.createElement('button'); b.textContent = actionLabel;
+    b.onclick = () => onAction(r.id, b); td.append(b); tr.append(td); el.append(tr);
+  });
+}
+
+async function load() {
+  if (!sb) { setMsg('Configurá SUPABASE_URL y SUPABASE_ANON_KEY en este archivo.', true); return; }
+  const key = $('#key').value;
+  const { data, error } = await sb.rpc('admin_overview', { p_key: key });
+  if (error) { setMsg('Clave incorrecta o panel bloqueado.', true); $('#app').hidden = true; return; }
+  setMsg('Datos actualizados ' + new Date().toLocaleTimeString('es-AR'));
+  $('#app').hidden = false;
+
+  const s = data.stats, rtp = Number(s.rtp_theoretical || 0);
+  $('#stats').innerHTML = '';
+  [['Ingresos cobrados', fmt(s.revenue)], ['Tiros realizados', s.spins], ['Premios (pagados + adeudados)', fmt(s.owed_or_paid_out)], ['Retorno teórico (RTP)', (rtp * 100).toFixed(1) + ' %']]
+    .forEach(([l, v]) => { const d = document.createElement('div'); d.className = 'stat'; const sm = document.createElement('small'); sm.textContent = l; const b = document.createElement('b'); b.textContent = v; d.append(sm, b); $('#stats').append(d); });
+  const w = $('#rtpWarn');
+  if (rtp >= 1) { w.hidden = false; w.textContent = 'Atención: con estos pesos el retorno teórico es ≥ 100 %. A largo plazo el sistema paga más de lo que cobra. Ajustá la tabla prizes.'; }
+  else w.hidden = true;
+
+  table($('#tPay'), ['Fecha', 'Nombre', 'Teléfono', 'Email', 'Monto', 'Referencia'],
+    data.pending_payments.map(p => ({ id: p.reference, cells: [when(p.created_at), p.full_name, p.phone, p.email, fmt(p.amount), p.reference] })),
+    'Acreditar', async (ref, btn) => {
+      if (!confirm('¿Confirmás que recibiste la transferencia con referencia ' + ref + '?')) return;
+      btn.disabled = true;
+      const { error } = await sb.rpc('admin_approve_payment', { p_key: key, p_reference: ref });
+      setMsg(error ? 'Error: ' + error.message : 'Pago acreditado. La ficha ya le aparece al jugador.', !!error); load();
+    });
+
+  table($('#tPrize'), ['Fecha', 'Premio', 'Valor', 'Nombre', 'Teléfono', 'Email'],
+    data.pending_prizes.map(p => ({ id: p.id, cells: [when(p.created_at), p.prize_label, fmt(p.amount), p.full_name, p.phone, p.email] })),
+    'Marcar entregado', async (id, btn) => {
+      const notes = prompt('Nota de entrega (opcional): comprobante, fecha, DNI verificado…') ?? '';
+      btn.disabled = true;
+      const { error } = await sb.rpc('admin_fulfill', { p_key: key, p_spin_id: id, p_notes: notes });
+      setMsg(error ? 'Error: ' + error.message : 'Premio marcado como entregado.', !!error); load();
+    });
+}
+$('#load').onclick = load;
+$('#key').addEventListener('keydown', e => { if (e.key === 'Enter') load(); });
+</script>
+</body>
+</html>
