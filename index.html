@@ -104,6 +104,19 @@ section.block .sub{color:var(--muted);font-size:14px;margin-bottom:16px}
 .ticker.on{display:block}
 .ticker-track{display:inline-flex;gap:46px;white-space:nowrap;padding-left:100%;animation:marq 38s linear infinite}
 @keyframes marq{to{transform:translateX(-100%)}}
+.prize .thumb{width:46px;height:46px;border-radius:10px;object-fit:cover;flex:none;border:1px solid var(--line)}
+.prize .info{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
+.wgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px}
+.wcard{position:relative;padding:18px;border-radius:18px;border:1px solid var(--line);background:linear-gradient(180deg,rgba(245,197,66,.08),rgba(255,255,255,.02))}
+.wcard .top{display:flex;gap:12px;align-items:center}
+.avatar{width:60px;height:60px;border-radius:50%;object-fit:cover;border:2px solid var(--gold);background:#2a2230;flex:none}
+.avatar.ph{display:flex;align-items:center;justify-content:center;font-family:'Bebas Neue',sans-serif;font-size:26px;color:var(--gold)}
+.wname{font-weight:800;font-size:16px}
+.wdate{color:var(--muted);font-size:12px}
+.wprize{color:var(--gold);font-family:'Bebas Neue',sans-serif;font-size:28px;letter-spacing:1px;line-height:1.1;margin-top:10px}
+.wcomment{color:var(--muted);font-size:13.5px;line-height:1.55;font-style:italic;margin-top:6px}
+.wtag{position:absolute;top:10px;right:12px;font-size:10px;font-weight:800;letter-spacing:1px;color:#3a0a12;background:var(--gold);border-radius:999px;padding:2px 8px}
+.resimg{display:none;width:128px;height:128px;margin:8px auto 0;border-radius:18px;object-fit:cover;border:2px solid var(--gold);box-shadow:0 0 30px rgba(245,197,66,.4)}
 details{border:1px solid var(--line);border-radius:12px;padding:12px 16px;margin-bottom:8px;background:rgba(255,255,255,.03)}
 summary{cursor:pointer;font-weight:600}
 details p{color:var(--muted);font-size:14px;margin-top:8px;line-height:1.55}
@@ -197,6 +210,12 @@ footer strong{color:var(--text)}
     <div class="prize-grid" id="prizeGrid"></div>
   </section>
 
+  <section class="block" id="ganadores" hidden>
+    <h3>NUESTROS GANADORES</h3>
+    <p class="sub">Personas que ya giraron la ruleta y se llevaron su premio.</p>
+    <div class="wgrid" id="wGrid"></div>
+  </section>
+
   <section class="block">
     <h3>PREGUNTAS FRECUENTES</h3>
     <details><summary>¿Cómo se decide el premio?</summary><p>Al girar, el servidor sortea el resultado con un generador aleatorio criptográfico y recién después la rueda se anima hasta ese gajo. La animación es solo visual: no se puede influir en el resultado.</p></details>
@@ -228,6 +247,7 @@ footer strong{color:var(--text)}
 <div class="modal" id="resModal" role="dialog" aria-modal="true" aria-labelledby="resTitle">
   <div class="card">
     <h4 id="resTitle"></h4>
+    <img class="resimg" id="resImg" alt="">
     <div class="big" id="resPrize"></div>
     <p id="resMsg"></p>
     <button class="btn" id="resAgain"></button>
@@ -254,6 +274,8 @@ const sb = DEMO ? null : window.supabase.createClient(CONFIG.SUPABASE_URL, CONFI
 
 /* ====================== UTILIDADES ====================== */
 const $ = (s, r = document) => r.querySelector(s);
+// Solo se aceptan imágenes por https (fotos de premios / avatares)
+const safeImg = u => (typeof u === 'string' && /^https:\/\//i.test(u.trim())) ? u.trim() : null;
 const TAU = Math.PI * 2;
 const mod = (a, n) => ((a % n) + n) % n;
 const fmt = n => new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'ARS', maximumFractionDigits: 0 }).format(n);
@@ -489,15 +511,56 @@ function renderPrizes() {
   const sorted = [...prizes].sort((a, b) => b.amount - a.amount || a.position - b.position);
   for (const p of sorted) {
     const d = document.createElement('div'); d.className = 'prize'; d.style.borderLeftColor = p.color;
+    const img = safeImg(p.image_url);
+    if (img) { const t = document.createElement('img'); t.className = 'thumb'; t.src = img; t.alt = p.label; t.loading = 'lazy'; d.append(t); }
+    const info = document.createElement('div'); info.className = 'info';
     const b = document.createElement('b'); b.textContent = p.label;
     const s = document.createElement('small');
     const pct = p.probability * 100;
-    s.textContent = (pct >= 1 ? pct.toLocaleString('es-AR', { maximumFractionDigits: 1 }) : pct.toLocaleString('es-AR', { maximumFractionDigits: 3 })) + ' %';
-    d.append(b, s); g.append(d);
+    s.textContent = 'Probabilidad: ' + (pct >= 1 ? pct.toLocaleString('es-AR', { maximumFractionDigits: 1 }) : pct.toLocaleString('es-AR', { maximumFractionDigits: 3 })) + ' %';
+    info.append(b, s); d.append(info); g.append(d);
   }
 }
 
+/* ---- Ganadores destacados (tabla winners) ---- */
+const DEMO_WINNERS = [
+  { first_name: 'Martina', last_name: 'Gómez', avatar_url: null, prize_label: '$1.000.000', comment: '¡No lo podía creer! Giré una sola vez y a los pocos días ya tenía la transferencia. Gracias!', won_at: new Date(Date.now() - 2 * 864e5).toISOString(), is_sample: true },
+  { first_name: 'Lucas', last_name: 'Fernández', avatar_url: null, prize_label: '$200.000', comment: 'Compré la ficha de curioso y salió premio. Muy buena experiencia.', won_at: new Date(Date.now() - 5 * 864e5).toISOString(), is_sample: true }
+];
+function renderWinners(list) {
+  const sec = $('#ganadores'), g = $('#wGrid'); g.textContent = '';
+  if (!Array.isArray(list) || !list.length) { sec.hidden = true; return; }
+  list.forEach(w => {
+    const c = document.createElement('div'); c.className = 'wcard';
+    if (w.is_sample) { const t = document.createElement('span'); t.className = 'wtag'; t.textContent = 'EJEMPLO'; c.append(t); }
+    const top = document.createElement('div'); top.className = 'top';
+    const img = safeImg(w.avatar_url);
+    let av;
+    if (img) { av = document.createElement('img'); av.className = 'avatar'; av.src = img; av.alt = ''; av.loading = 'lazy'; av.onerror = () => { av.replaceWith(initials(w)); }; }
+    else av = initials(w);
+    const who = document.createElement('div');
+    const n = document.createElement('div'); n.className = 'wname'; n.textContent = `${w.first_name} ${w.last_name}`;
+    const dt = document.createElement('div'); dt.className = 'wdate';
+    dt.textContent = w.won_at ? new Date(w.won_at).toLocaleDateString('es-AR', { day: 'numeric', month: 'long', year: 'numeric' }) : '';
+    who.append(n, dt); top.append(av, who); c.append(top);
+    const pz = document.createElement('div'); pz.className = 'wprize'; pz.textContent = '🏆 ' + w.prize_label; c.append(pz);
+    if (w.comment) { const q = document.createElement('div'); q.className = 'wcomment'; q.textContent = '“' + w.comment + '”'; c.append(q); }
+    g.append(c);
+  });
+  sec.hidden = false;
+}
+function initials(w) {
+  const d = document.createElement('div'); d.className = 'avatar ph';
+  d.textContent = ((w.first_name || '?')[0] + (w.last_name || '')[0]).toUpperCase(); return d;
+}
+async function loadShowcase() {
+  if (DEMO) { renderWinners(DEMO_WINNERS); return; }
+  const { data } = await sb.rpc('get_winners');
+  renderWinners(data);
+}
+
 async function loadWinners() {
+  loadShowcase();
   if (DEMO) return;
   const { data } = await sb.rpc('recent_winners');
   if (!Array.isArray(data) || !data.length) return;
@@ -510,18 +573,6 @@ async function loadWinners() {
 let pollTimer = null, pollUntil = 0;
 const openModal = id => $(id).classList.add('on');
 const closeModal = id => $(id).classList.remove('on');
-
-async function copy(text, btn) {
-  try { await navigator.clipboard.writeText(text); const o = btn.textContent; btn.textContent = '¡Copiado!'; setTimeout(() => btn.textContent = o, 1200); }
-  catch { toast('No se pudo copiar, hacelo manualmente.'); }
-}
-function copyRow(label, value) {
-  const row = document.createElement('div'); row.className = 'copyrow';
-  const left = document.createElement('div'); const sm = document.createElement('small'); sm.textContent = label;
-  const b = document.createElement('b'); b.textContent = value; left.append(sm, b);
-  const btn = document.createElement('button'); btn.type = 'button'; btn.textContent = 'Copiar'; btn.onclick = () => copy(value, btn);
-  row.append(left, btn); return row;
-}
 
 function showPayModal(info, returning = false) {
   $('#payAmount').textContent = fmt(info.price);
@@ -541,14 +592,7 @@ function showPayModal(info, returning = false) {
     const a = document.createElement('button'); a.className = 'btn'; a.type = 'button'; a.textContent = '💸 IR A PAGAR CON GALIOPAY';
     a.onclick = () => location.assign(info.checkout_url);
     body.append(p, a);
-  } else if (info.transfer) {
-    const p = document.createElement('p'); p.textContent = 'Hacé una transferencia por el monto exacto y poné la referencia en el concepto:';
-    body.append(p);
-    if (info.transfer.alias) body.append(copyRow('Alias', info.transfer.alias));
-    if (info.transfer.cbu) body.append(copyRow('CBU / CVU', info.transfer.cbu));
-    if (info.transfer.holder) body.append(copyRow('Titular', info.transfer.holder));
   }
-  body.append(copyRow('Referencia (concepto)', info.reference));
   openModal('#payModal');
 }
 
@@ -653,6 +697,9 @@ function showResult(res) {
   const free = res.kind === 'free_spin';
   $('#resTitle').textContent = win ? '¡GANASTE!' : free ? '¡OTRO TIRO!' : 'SUERTE LA PRÓXIMA';
   $('#resPrize').textContent = win ? res.label : free ? 'Ficha gratis' : '—';
+  const pz = prizes.find(p => p.position === res.position);
+  const ri = $('#resImg'), rimg = win && pz ? safeImg(pz.image_url) : null;
+  if (rimg) { ri.src = rimg; ri.alt = res.label; ri.style.display = 'block'; } else { ri.removeAttribute('src'); ri.style.display = 'none'; }
   $('#resMsg').textContent = win
     ? 'Registramos tu premio. Vamos a contactarte por el teléfono y el email con los que compraste para validar tu identidad y coordinar el pago o la entrega.'
     : free ? 'Sumamos una ficha extra a tu cuenta. ¡Girá de nuevo sin costo!'
