@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>Mega Ruleta — Girá y ganá hasta $20.000.000</title>
-<meta name="description" content="Un tiro, diez premios. Comprá tu ficha por transferencia y girá la Mega Ruleta. Probabilidades públicas.">
+<meta name="description" content="Un tiro, diez premios. Comprá tu ficha por transferencia con Galiopay y girá la Mega Ruleta.">
 <meta name="theme-color" content="#0a0508">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -117,6 +117,47 @@ section.block .sub{color:var(--muted);font-size:14px;margin-bottom:16px}
 .wcomment{color:var(--muted);font-size:13.5px;line-height:1.55;font-style:italic;margin-top:6px}
 .wtag{position:absolute;top:10px;right:12px;font-size:10px;font-weight:800;letter-spacing:1px;color:#3a0a12;background:var(--gold);border-radius:999px;padding:2px 8px}
 .resimg{display:none;width:128px;height:128px;margin:8px auto 0;border-radius:18px;object-fit:cover;border:2px solid var(--gold);box-shadow:0 0 30px rgba(245,197,66,.4)}
+[hidden]{display:none!important}
+/* ---- Lista de premios animada ---- */
+@property --ang{syntax:'<angle>';initial-value:0deg;inherits:false}
+@keyframes angspin{to{--ang:360deg}}
+@keyframes floaty{50%{transform:translateY(-7px)}}
+@keyframes shine{0%,55%{transform:translateX(-140%) skewX(-20deg)}100%{transform:translateX(320%) skewX(-20deg)}}
+@keyframes ico{50%{transform:scale(1.18) rotate(-6deg)}}
+.pgrid{display:flex;flex-direction:column;gap:16px}
+.phero{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,250px),1fr));gap:16px}
+.prest{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,210px),1fr));gap:12px}
+.pcard{position:relative;overflow:hidden;isolation:isolate;border-radius:20px;padding:18px;border:1px solid var(--line);
+  background:linear-gradient(160deg,var(--pc,#3a0a1c),#12060c 88%);opacity:0;transform:translateY(28px) scale(.95);
+  transition:opacity .6s ease,transform .6s cubic-bezier(.2,1.2,.4,1),box-shadow .25s}
+.pcard.in{opacity:1;transform:none}
+.pcard.in:hover{transform:translateY(-6px) scale(1.03);box-shadow:0 18px 44px rgba(245,197,66,.28)}
+.pcard::after{content:"";position:absolute;top:0;bottom:0;left:0;width:38%;background:linear-gradient(90deg,transparent,rgba(255,255,255,.2),transparent);animation:shine 5.5s ease-in-out infinite;animation-delay:var(--d,0s);pointer-events:none;z-index:2}
+.pcard.hero{padding:26px 22px;min-height:210px;border:0;box-shadow:0 0 36px rgba(245,197,66,.16)}
+.pcard.hero::before{content:"";position:absolute;inset:0;border-radius:inherit;padding:2px;z-index:1;pointer-events:none;
+  background:conic-gradient(from var(--ang),#fff3c4,#f5c542,#c1121f,#f5c542,#fff3c4);animation:angspin 4s linear infinite;
+  -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude}
+.pcard.hero.in{animation:floaty 5s ease-in-out infinite}
+.pimg{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:.4;z-index:-1;transition:transform .8s}
+.pcard:hover .pimg{transform:scale(1.08)}
+.pcard .ptop{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:10px}
+.pico{font-size:34px;filter:drop-shadow(0 4px 8px rgba(0,0,0,.5));display:inline-block;animation:ico 2.6s ease-in-out infinite}
+.pcard.hero .pico{font-size:46px}
+.ptag{font-size:10.5px;font-weight:800;letter-spacing:1.4px;padding:3px 10px;border-radius:999px;background:linear-gradient(180deg,#ffe08a,var(--gold));color:#3a0a12;white-space:nowrap}
+.pamt{font-family:'Bebas Neue','Arial Narrow',Impact,sans-serif;font-size:clamp(26px,2.6vw,34px);line-height:1.02;letter-spacing:1px;color:#fff3c4;text-shadow:0 0 22px rgba(245,197,66,.55);white-space:nowrap;overflow:hidden;text-overflow:clip}
+.pcard.hero .pamt{font-size:clamp(34px,4.4vw,56px);white-space:normal}
+.pcard.hero .pamt.num{white-space:nowrap}
+.psub{color:rgba(255,246,224,.78);font-size:13px;margin-top:4px}
+.pcta{text-align:center;margin-top:26px}
+.pcta .btn{display:inline-block;width:auto;padding:16px 34px;font-size:18px;animation:pulse 2.2s ease-in-out infinite}
+/* ---- Reclamo de premio ---- */
+.claimbar{display:none;margin-bottom:14px;padding:12px 14px;border-radius:14px;border:1px solid var(--gold);background:linear-gradient(90deg,rgba(193,18,31,.3),rgba(245,197,66,.16));font-size:14px;font-weight:600}
+@keyframes glowbar{50%{box-shadow:0 0 34px rgba(245,197,66,.55)}}
+.claimbar.on{display:block;animation:glowbar 2.2s ease-in-out infinite}
+.claimbar .btn{margin-top:8px;padding:11px 14px;font-size:14px}
+.photo-row{display:flex;gap:12px;align-items:center}
+.photo-prev{width:72px;height:72px;border-radius:50%;border:2px solid var(--gold);background:#2a2230 center/cover no-repeat;display:flex;align-items:center;justify-content:center;font-size:26px;flex:none;overflow:hidden}
+.photo-row input[type=file]{flex:1;min-width:0;font-size:12px;color:var(--muted);padding:8px}
 details{border:1px solid var(--line);border-radius:12px;padding:12px 16px;margin-bottom:8px;background:rgba(255,255,255,.03)}
 summary{cursor:pointer;font-weight:600}
 details p{color:var(--muted);font-size:14px;margin-top:8px;line-height:1.55}
@@ -174,6 +215,7 @@ footer strong{color:var(--text)}
     </div>
 
     <aside class="panel" id="buyPanel">
+      <div class="claimbar" id="claimBar"><span id="claimBarTxt"></span><button class="btn" id="claimBarBtn" type="button">🏆 RECLAMAR AHORA</button></div>
       <h2>TU FICHA</h2>
       <div class="price"><b id="priceTxt">$10.000</b><span>por tiro · pago por transferencia</span></div>
 
@@ -205,9 +247,10 @@ footer strong{color:var(--text)}
   </section>
 
   <section class="block" id="premios">
-    <h3>PREMIOS Y PROBABILIDADES</h3>
-    <p class="sub">Transparencia total: estas son las probabilidades reales de cada gajo. El resultado se sortea en el servidor, no en tu dispositivo.</p>
-    <div class="prize-grid" id="prizeGrid"></div>
+    <h3>DIEZ PREMIOS EN JUEGO</h3>
+    <p class="sub">Cada giro puede cambiarte el día. Mirá todo lo que podés ganar:</p>
+    <div class="pgrid" id="prizeGrid"></div>
+    <div class="pcta"><button class="btn" id="ctaBuy" type="button">🎰 QUIERO GIRAR AHORA</button></div>
   </section>
 
   <section class="block" id="ganadores" hidden>
@@ -220,7 +263,7 @@ footer strong{color:var(--text)}
     <h3>PREGUNTAS FRECUENTES</h3>
     <details><summary>¿Cómo se decide el premio?</summary><p>Al girar, el servidor sortea el resultado con un generador aleatorio criptográfico y recién después la rueda se anima hasta ese gajo. La animación es solo visual: no se puede influir en el resultado.</p></details>
     <details><summary>¿Cuándo se acredita mi ficha?</summary><p>Apenas se confirma tu transferencia. La pantalla se actualiza sola; si cerrás la página, tu ficha queda guardada en este dispositivo.</p></details>
-    <details><summary>¿Cómo cobro mi premio?</summary><p>Quedamos registrados con tu nombre, teléfono y email. Te contactamos para validar tu identidad y coordinar el pago o la entrega.</p></details>
+    <details><summary>¿Cómo cobro mi premio?</summary><p>Después de ganar tocá “Reclamar mi premio” y completá tu nombre, apellido y una foto de perfil. Validamos tus datos y coordinamos el pago o la entrega por teléfono o email.</p></details>
     <details><summary>¿Qué pasa con “Otro tiro”?</summary><p>Se acredita una ficha gratis en tu cuenta al instante y podés girar de nuevo.</p></details>
   </section>
 </main>
@@ -250,8 +293,29 @@ footer strong{color:var(--text)}
     <img class="resimg" id="resImg" alt="">
     <div class="big" id="resPrize"></div>
     <p id="resMsg"></p>
+    <button class="btn" id="resClaim" type="button" hidden>🏆 RECLAMAR MI PREMIO</button>
     <button class="btn" id="resAgain"></button>
     <button class="btn ghost" id="resClose">Cerrar</button>
+  </div>
+</div>
+
+<!-- Modal reclamo -->
+<div class="modal" id="claimModal" role="dialog" aria-modal="true" aria-labelledby="claimTitle">
+  <div class="card" style="text-align:left">
+    <h4 id="claimTitle" style="text-align:center">RECLAMÁ TU PREMIO</h4>
+    <div class="big" id="claimPrize" style="text-align:center;font-size:clamp(36px,9vw,54px)"></div>
+    <p style="text-align:center">Para validar tu identidad y entregarte el premio necesitamos estos datos. Son obligatorios.</p>
+    <form id="claimForm" novalidate>
+      <div class="field"><label for="cFirst">Nombre</label><input id="cFirst" maxlength="40" autocomplete="given-name"></div>
+      <div class="field"><label for="cLast">Apellido</label><input id="cLast" maxlength="40" autocomplete="family-name"></div>
+      <div class="field"><label for="cPhoto">Foto de perfil (obligatoria)</label>
+        <div class="photo-row"><div class="photo-prev" id="cPrev">📷</div><input id="cPhoto" type="file" accept="image/*"></div></div>
+      <div class="field"><label for="cComment">Comentario sobre tu premio (opcional)</label><input id="cComment" maxlength="280" placeholder="¿Qué sentiste al ganar?"></div>
+      <label class="check"><input type="checkbox" id="cPublish"> Quiero aparecer en “Nuestros ganadores” con mi nombre, foto y comentario (opcional).</label>
+      <button class="btn" type="submit" id="claimBtn">ENVIAR RECLAMO</button>
+      <div class="err" id="claimErr" role="alert"></div>
+    </form>
+    <button class="btn ghost" id="claimClose" type="button" style="margin-top:8px">Reclamar más tarde</button>
   </div>
 </div>
 
@@ -275,7 +339,7 @@ const sb = DEMO ? null : window.supabase.createClient(CONFIG.SUPABASE_URL, CONFI
 /* ====================== UTILIDADES ====================== */
 const $ = (s, r = document) => r.querySelector(s);
 // Solo se aceptan imágenes por https (fotos de premios / avatares)
-const safeImg = u => (typeof u === 'string' && /^https:\/\//i.test(u.trim())) ? u.trim() : null;
+const safeImg = u => (typeof u === 'string' && /^(https:\/\/|data:image\/(jpeg|png|webp);base64,)/i.test(u.trim())) ? u.trim() : null;
 const TAU = Math.PI * 2;
 const mod = (a, n) => ((a % n) + n) % n;
 const fmt = n => new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'ARS', maximumFractionDigits: 0 }).format(n);
@@ -304,7 +368,8 @@ const DEMO_PRIZES = [
   { position:9, label:'$5.000', kind:'cash', amount:5000, color:'#1b3a8c', w:20000 }
 ];
 let prizes = [];
-let tokens = store.get('mr_tokens', []);   // códigos de fichas de este dispositivo
+let tokens = store.get('mr_tokens', []);
+let claims = store.get('mr_claims', []);   // premios ganados pendientes de reclamar: {code,label,amount}   // códigos de fichas de este dispositivo
 let spinning = false;
 let rot = -Math.PI / 2;                    // rotación actual de la rueda
 let spinAnim = null;
@@ -319,7 +384,7 @@ async function loadWheel() {
   } else {
     const { data, error } = await sb.rpc('get_wheel');
     if (error || !data || !data.length) { toast('No se pudo cargar la ruleta. Reintentá en unos segundos.'); return; }
-    prizes = data.map(p => ({ ...p, probability: Number(p.probability), amount: Number(p.amount) }));
+    prizes = data.map(p => ({ ...p, amount: Number(p.amount) }));
   }
   prizes.sort((a, b) => a.position - b.position);
   renderPrizes();
@@ -506,20 +571,63 @@ function renderTokens() {
   hub.disabled = spinning; $('#spinBtn').disabled = spinning;
 }
 
+function prizeMeta(p, rank) {
+  if (p.kind === 'free_spin') return { ico: '🔁', tag: 'TIRO EXTRA', sub: 'otro giro, sin pagar' };
+  if (p.kind === 'item') return { ico: '🚗', tag: 'PREMIAZO', sub: 'te lo llevás vos' };
+  if (rank === 0) return { ico: '💎', tag: 'PREMIO MAYOR', sub: 'en efectivo, a tu cuenta' };
+  if (p.amount >= 10e6) return { ico: '💎', tag: 'SUPER PREMIO', sub: 'en efectivo, a tu cuenta' };
+  if (p.amount >= 5e6) return { ico: '🏆', tag: 'SUPER PREMIO', sub: 'en efectivo, a tu cuenta' };
+  if (p.amount >= 1e6) return { ico: '💰', tag: 'GRAN PREMIO', sub: 'en efectivo' };
+  if (p.amount >= 200000) return { ico: '💵', tag: 'PREMIO', sub: 'en efectivo' };
+  return { ico: '🎁', tag: 'PREMIO', sub: 'en efectivo' };
+}
+const money = n => fmt(n).replace(/\s/g, '');
+function countUp(el, to) {
+  const t0 = performance.now(), dur = 1500;
+  const step = now => { const k = Math.min(1, (now - t0) / dur), e = 1 - Math.pow(1 - k, 3); el.textContent = money(Math.round(to * e)); if (k < 1) requestAnimationFrame(step); else fitPrizes(); };
+  requestAnimationFrame(step);
+}
+function fitPrizes() {
+  document.querySelectorAll('.pamt').forEach(el => {
+    el.style.fontSize = ''; let fs = parseFloat(getComputedStyle(el).fontSize), guard = 40;
+    while (el.scrollWidth > el.clientWidth + 1 && fs > 14 && guard--) { fs -= 2; el.style.fontSize = fs + 'px'; }
+  });
+}
+let fitT; addEventListener('resize', () => { clearTimeout(fitT); fitT = setTimeout(fitPrizes, 150); });
 function renderPrizes() {
   const g = $('#prizeGrid'); g.textContent = '';
-  const sorted = [...prizes].sort((a, b) => b.amount - a.amount || a.position - b.position);
-  for (const p of sorted) {
-    const d = document.createElement('div'); d.className = 'prize'; d.style.borderLeftColor = p.color;
-    const img = safeImg(p.image_url);
-    if (img) { const t = document.createElement('img'); t.className = 'thumb'; t.src = img; t.alt = p.label; t.loading = 'lazy'; d.append(t); }
-    const info = document.createElement('div'); info.className = 'info';
-    const b = document.createElement('b'); b.textContent = p.label;
-    const s = document.createElement('small');
-    const pct = p.probability * 100;
-    s.textContent = 'Probabilidad: ' + (pct >= 1 ? pct.toLocaleString('es-AR', { maximumFractionDigits: 1 }) : pct.toLocaleString('es-AR', { maximumFractionDigits: 3 })) + ' %';
-    info.append(b, s); d.append(info); g.append(d);
-  }
+  const list = prizes.filter(p => p.kind !== 'none').sort((a, b) => (b.amount - a.amount) || (a.position - b.position));
+  const isHero = p => p.kind === 'item' || p.amount >= 5e6;
+  let n = 0;
+  const mk = (p, hero) => {
+    const m = prizeMeta(p, list.indexOf(p)), i = n++;
+    const c = document.createElement('div'); c.className = 'pcard' + (hero ? ' hero' : '');
+    c.style.setProperty('--pc', p.color); c.style.setProperty('--d', (i * .6) + 's'); c.style.transitionDelay = (i * 80) + 'ms';
+    const src = safeImg(p.image_url);
+    if (src) { const im = document.createElement('img'); im.className = 'pimg'; im.src = src; im.alt = ''; im.loading = 'lazy'; c.append(im); }
+    const top = document.createElement('div'); top.className = 'ptop';
+    const ico = document.createElement('span'); ico.className = 'pico'; ico.textContent = m.ico; ico.style.animationDelay = (i * .3) + 's';
+    const tag = document.createElement('span'); tag.className = 'ptag'; tag.textContent = m.tag;
+    top.append(ico, tag);
+    const amt = document.createElement('div'); amt.className = 'pamt';
+    if (p.kind === 'cash' && p.amount > 0) { amt.textContent = money(p.amount); amt.dataset.to = p.amount; amt.classList.add('num'); } else amt.textContent = p.label;
+    const sub = document.createElement('div'); sub.className = 'psub'; sub.textContent = m.sub;
+    c.append(top, amt, sub); return c;
+  };
+  const row1 = document.createElement('div'); row1.className = 'phero';
+  list.filter(isHero).forEach(p => row1.append(mk(p, true)));
+  const row2 = document.createElement('div'); row2.className = 'prest';
+  list.filter(p => !isHero(p)).forEach(p => row2.append(mk(p, false)));
+  g.append(row1, row2);
+
+  const io = 'IntersectionObserver' in window ? new IntersectionObserver(es => es.forEach(e => {
+    if (!e.isIntersecting) return;
+    const c = e.target; c.classList.add('in');
+    const a = c.querySelector('.pamt[data-to]'); if (a && !reduceMotion) countUp(a, +a.dataset.to);
+    io.unobserve(c);
+  }), { threshold: .2 }) : null;
+  g.querySelectorAll('.pcard').forEach(c => io ? io.observe(c) : c.classList.add('in'));
+  fitPrizes(); if (document.fonts && document.fonts.ready) document.fonts.ready.then(fitPrizes);
 }
 
 /* ---- Ganadores destacados (tabla winners) ---- */
@@ -662,7 +770,7 @@ function demoSpin() {
   const total = prizes.reduce((s, p) => s + p.w, 0);
   const r = crypto.getRandomValues(new Uint32Array(1))[0] % total;
   let acc = 0;
-  for (const p of prizes) { acc += p.w; if (r < acc) return { position: p.position, label: p.label, kind: p.kind, amount: p.amount, new_token_code: p.kind === 'free_spin' ? 'demo-' + crypto.randomUUID() : null }; }
+  for (const p of prizes) { acc += p.w; if (r < acc) return { position: p.position, label: p.label, kind: p.kind, amount: p.amount, new_token_code: p.kind === 'free_spin' ? 'demo-' + crypto.randomUUID() : null, claim_code: (p.kind === 'cash' || p.kind === 'item') ? 'demo-claim-' + crypto.randomUUID() : null }; }
 }
 
 async function spin() {
@@ -686,6 +794,7 @@ async function spin() {
   }
   tokens = tokens.filter(c => c !== code);
   if (res.new_token_code) tokens.push(res.new_token_code);
+  if (res.claim_code) { claims.push({ code: res.claim_code, label: res.label, amount: res.amount }); store.set('mr_claims', claims); renderClaims(); }
   store.set('mr_tokens', tokens);
   await animateTo(res.position);
   spinning = false; renderTokens(); showResult(res);
@@ -701,14 +810,80 @@ function showResult(res) {
   const ri = $('#resImg'), rimg = win && pz ? safeImg(pz.image_url) : null;
   if (rimg) { ri.src = rimg; ri.alt = res.label; ri.style.display = 'block'; } else { ri.removeAttribute('src'); ri.style.display = 'none'; }
   $('#resMsg').textContent = win
-    ? 'Registramos tu premio. Vamos a contactarte por el teléfono y el email con los que compraste para validar tu identidad y coordinar el pago o la entrega.'
+    ? 'Reclamá tu premio ahora: te pedimos nombre, apellido y una foto de perfil para validar tu identidad y coordinar el pago o la entrega.'
     : free ? 'Sumamos una ficha extra a tu cuenta. ¡Girá de nuevo sin costo!'
     : 'Esta vez no hubo premio. Recordá jugar con responsabilidad.';
   const again = $('#resAgain');
+  const cb = $('#resClaim'), cl = claims.find(c => c.code === res.claim_code);
+  cb.hidden = !(win && cl); again.classList.toggle('ghost', !!(win && cl));
+  if (win && cl) cb.onclick = () => { closeModal('#resModal'); openClaim(cl); };
   again.textContent = tokens.length ? '🎰 GIRAR DE NUEVO' : 'COMPRAR OTRA FICHA';
   again.onclick = () => { closeModal('#resModal'); if (tokens.length) setTimeout(spin, 250); else { $('#buyPanel').scrollIntoView({ behavior: 'smooth', block: 'center' }); } };
   if (win) { sfx.win(); confetti(win && res.amount >= 1000000 ? 320 : 160); } else if (free) { sfx.free(); confetti(80); } else sfx.lose();
   openModal('#resModal');
+}
+
+/* ====================== RECLAMO DE PREMIO ====================== */
+let claimingCode = null, claimPhotoData = null;
+function renderClaims() {
+  const bar = $('#claimBar');
+  if (!claims.length) { bar.classList.remove('on'); return; }
+  bar.classList.add('on');
+  $('#claimBarTxt').textContent = claims.length === 1 ? `🏆 Tenés un premio por reclamar: ${claims[0].label}` : `🏆 Tenés ${claims.length} premios por reclamar`;
+}
+function openClaim(c) {
+  claimingCode = c.code; claimPhotoData = null;
+  $('#claimPrize').textContent = c.label; $('#claimErr').textContent = '';
+  $('#claimForm').reset(); const pv = $('#cPrev'); pv.style.backgroundImage = ''; pv.textContent = '📷';
+  openModal('#claimModal');
+}
+function fileToAvatar(file) {
+  return new Promise((resolve, reject) => {
+    if (!/^image\//.test(file.type)) return reject(new Error('tipo'));
+    const url = URL.createObjectURL(file), img = new Image();
+    img.onload = () => {
+      const S = 360, c = document.createElement('canvas'); c.width = c.height = S;
+      const m = Math.min(img.width, img.height);
+      c.getContext('2d').drawImage(img, (img.width - m) / 2, (img.height - m) / 2, m, m, 0, 0, S, S);
+      URL.revokeObjectURL(url);
+      let q = .82, d = c.toDataURL('image/jpeg', q);
+      while (d.length > 180000 && q > .4) { q -= .1; d = c.toDataURL('image/jpeg', q); }
+      resolve(d);
+    };
+    img.onerror = () => { URL.revokeObjectURL(url); reject(new Error('img')); };
+    img.src = url;
+  });
+}
+async function onPhoto(e) {
+  const f = e.target.files[0], pv = $('#cPrev'); claimPhotoData = null; pv.style.backgroundImage = ''; pv.textContent = '📷';
+  if (!f) return;
+  try { claimPhotoData = await fileToAvatar(f); pv.style.backgroundImage = `url(${claimPhotoData})`; pv.textContent = ''; $('#claimErr').textContent = ''; }
+  catch { $('#claimErr').textContent = 'No pudimos leer esa imagen. Probá con otra foto (JPG o PNG).'; }
+}
+async function submitClaim(e) {
+  e.preventDefault();
+  const err = $('#claimErr'); err.textContent = '';
+  const first = $('#cFirst').value.trim(), last = $('#cLast').value.trim();
+  if (first.length < 2 || last.length < 2) { err.textContent = 'Ingresá tu nombre y tu apellido.'; return; }
+  if (!claimPhotoData) { err.textContent = 'La foto de perfil es obligatoria para reclamar el premio.'; return; }
+  const btn = $('#claimBtn'); btn.disabled = true;
+  const done = () => { claims = claims.filter(c => c.code !== claimingCode); store.set('mr_claims', claims); renderClaims(); closeModal('#claimModal'); };
+  try {
+    if (!DEMO) {
+      const { error } = await sb.rpc('claim_prize', { p_claim_code: claimingCode, p_first: first, p_last: last, p_photo: claimPhotoData, p_comment: $('#cComment').value.trim() || null, p_publish: $('#cPublish').checked });
+      if (error) throw error;
+    }
+    done(); sfx.ok(); confetti(90); toast('¡Reclamo enviado! Validamos tus datos y coordinamos la entrega.', 5200);
+  } catch (ex) {
+    const m = (ex && ex.message) || '';
+    if (/ya_reclamado/.test(m)) { done(); toast('Este premio ya fue reclamado.'); }
+    else err.textContent = /foto_invalida/.test(m) ? 'La foto no es válida. Probá con otra.' : 'No pudimos enviar el reclamo. Intentá de nuevo.';
+  } finally { btn.disabled = false; }
+}
+async function syncClaims() {
+  if (DEMO || !claims.length) return;
+  const { data } = await sb.rpc('check_claims', { p_codes: claims.map(c => c.code) });
+  if (Array.isArray(data) && data.length) { claims = claims.filter(c => !data.includes(c.code)); store.set('mr_claims', claims); renderClaims(); }
 }
 
 /* ====================== INIT ====================== */
@@ -717,8 +892,13 @@ $('#hub').addEventListener('click', spin);
 $('#spinBtn').addEventListener('click', spin);
 $('#payClose').addEventListener('click', () => closeModal('#payModal'));
 $('#resClose').addEventListener('click', () => closeModal('#resModal'));
+$('#claimForm').addEventListener('submit', submitClaim);
+$('#cPhoto').addEventListener('change', onPhoto);
+$('#claimClose').addEventListener('click', () => closeModal('#claimModal'));
+$('#claimBarBtn').addEventListener('click', () => { if (claims.length) openClaim(claims[0]); });
+$('#ctaBuy').addEventListener('click', () => { $('#buyPanel').scrollIntoView({ behavior: 'smooth', block: 'center' }); setTimeout(() => $('#fName').focus({ preventScroll: true }), 500); });
 $('#soundBtn').addEventListener('click', () => { soundOn = !soundOn; store.set('mr_sound', soundOn); paintSound(); if (soundOn) { ac(); sfx.ok(); } });
-document.addEventListener('keydown', e => { if (e.key === 'Escape') { closeModal('#payModal'); closeModal('#resModal'); } });
+document.addEventListener('keydown', e => { if (e.key === 'Escape') { closeModal('#payModal'); closeModal('#resModal'); closeModal('#claimModal'); } });
 addEventListener('resize', () => { cv.width = innerWidth; cv.height = innerHeight; });
 
 $('#licenseTxt').textContent = CONFIG.LICENSE_TEXT;
@@ -729,8 +909,9 @@ paintSound();
 
 (async () => {
   await loadWheel();
-  renderTokens();
+  renderTokens(); renderClaims();
   requestAnimationFrame(frame);
+  syncClaims();
   await syncTokens();
   loadWinners();
   const pending = store.get('mr_pending', null);
