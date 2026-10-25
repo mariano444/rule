@@ -9,24 +9,34 @@
 <style>
 :root{--gold:#f5c542;--bg:#0f0a0d;--panel:#1b1218;--line:rgba(245,197,66,.25);--text:#fff6e0;--muted:#b9a98a;--err:#ff6b6b;--ok:#2ecc71}
 *{box-sizing:border-box;margin:0;padding:0}
-body{font-family:system-ui,sans-serif;background:var(--bg);color:var(--text);padding:20px;max-width:1100px;margin:0 auto}
+[hidden]{display:none!important}
+body{font-family:system-ui,sans-serif;background:var(--bg);color:var(--text);padding:20px;max-width:1200px;margin:0 auto}
 h1{color:var(--gold);margin-bottom:14px}
-h2{color:var(--gold);font-size:18px;margin:26px 0 10px}
+h2{color:var(--gold);font-size:18px;margin:28px 0 6px}
+.hint{color:var(--muted);font-size:12.5px;margin-bottom:8px;line-height:1.5}
+code{background:#241820;border:1px solid var(--line);border-radius:6px;padding:1px 6px;font-size:12px}
 input{background:#241820;border:1px solid var(--line);color:var(--text);padding:10px 12px;border-radius:8px;font-size:14px}
-button{background:var(--gold);color:#3a0a12;border:0;border-radius:8px;padding:9px 14px;font-weight:700;cursor:pointer}
+button{background:var(--gold);color:#3a0a12;border:0;border-radius:8px;padding:8px 12px;font-weight:700;cursor:pointer;font-size:13px}
 button.sec{background:transparent;color:var(--gold);border:1px solid var(--gold)}
+button:disabled{opacity:.5;cursor:wait}
 .row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
-.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px;margin-top:14px}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:10px;margin-top:14px}
 .stat{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px}
 .stat small{color:var(--muted);display:block;font-size:12px}
 .stat b{font-size:22px}
 table{width:100%;border-collapse:collapse;background:var(--panel);border-radius:12px;overflow:hidden;font-size:13px}
-th,td{padding:9px 10px;text-align:left;border-bottom:1px solid var(--line)}
-th{color:var(--muted);font-weight:600}
+th,td{padding:9px 10px;text-align:left;border-bottom:1px solid var(--line);vertical-align:middle}
+th{color:var(--muted);font-weight:600;white-space:nowrap}
 .msg{margin-top:10px;font-size:13px;min-height:18px}
-.empty{color:var(--muted);font-size:13px;padding:8px 0}
 .warn{background:rgba(255,107,107,.1);border:1px solid var(--err);border-radius:10px;padding:10px 12px;font-size:13px;margin-top:12px}
 .scroll{overflow-x:auto}
+.thumb{width:54px;height:54px;border-radius:50%;object-fit:cover;border:2px solid var(--gold);cursor:zoom-in;display:block}
+.acts{display:flex;gap:6px;flex-wrap:wrap}
+.bad{color:var(--err);font-weight:700}
+.good{color:var(--ok);font-weight:700}
+.cm{max-width:260px;color:var(--muted);font-style:italic}
+.lb{position:fixed;inset:0;background:rgba(0,0,0,.85);display:flex;align-items:center;justify-content:center;z-index:10;cursor:zoom-out}
+.lb img{max-width:92vw;max-height:88vh;border-radius:14px;border:3px solid var(--gold)}
 </style>
 </head>
 <body>
@@ -42,12 +52,20 @@ th{color:var(--muted);font-weight:600}
   <div class="stats" id="stats"></div>
   <div class="warn" id="rtpWarn" hidden></div>
 
-  <h2>Pagos pendientes de acreditar (modo transferencia manual)</h2>
+  <h2>Premios y probabilidades <span style="color:var(--muted);font-weight:400;font-size:13px">(solo se ven acá)</span></h2>
+  <p class="hint">La probabilidad de cada premio es su peso dividido por la suma de pesos activos. Para cambiarla: <code>update prizes set weight = 10 where label = '$1.000.000';</code> · Foto del premio: <code>update prizes set image_url = 'https://…' where label = 'AUTO 0 KM';</code></p>
+  <div class="scroll"><table id="tPz"></table></div>
+
+  <h2>Pagos pendientes de acreditar</h2>
+  <p class="hint">Normalmente se acreditan solos por el webhook de Galiopay. Usá este botón solo si verificaste la transferencia y no se acreditó.</p>
   <div class="scroll"><table id="tPay"></table></div>
 
-  <h2>Premios por entregar</h2>
+  <h2>Premios por reclamar / entregar</h2>
+  <p class="hint">El ganador debe reclamar con nombre, apellido y foto de perfil. Sin reclamo no se puede marcar como entregado. Validá su identidad (DNI) antes de pagar. “Publicar” lo suma a “Nuestros ganadores” y solo está disponible si el ganador lo autorizó.</p>
   <div class="scroll"><table id="tPrize"></table></div>
 </div>
+
+<div class="lb" id="lb" hidden><img id="lbImg" alt="Foto de perfil del ganador"></div>
 
 <script>
 // Pegá acá los mismos datos que en index.html
@@ -60,58 +78,97 @@ const fmt = n => new Intl.NumberFormat('es-AR', { style: 'currency', currency: '
 const when = s => new Date(s).toLocaleString('es-AR');
 const setMsg = (t, bad) => { const m = $('#msg'); m.textContent = t; m.style.color = bad ? 'var(--err)' : 'var(--ok)'; };
 
-function cell(tr, text) { const td = document.createElement('td'); td.textContent = text; tr.append(td); return td; }
-function table(el, heads, rows, actionLabel, onAction) {
+function td(v) { const c = document.createElement('td'); if (v instanceof Node) c.append(v); else c.textContent = v == null ? '' : String(v); return c; }
+function table(el, heads, rows) {
   el.textContent = '';
-  if (!rows.length) { const tr = document.createElement('tr'); cell(tr, 'Nada pendiente.'); el.append(tr); return; }
-  const hr = document.createElement('tr'); heads.concat(['']).forEach(h => { const th = document.createElement('th'); th.textContent = h; hr.append(th); }); el.append(hr);
-  rows.forEach(r => {
-    const tr = document.createElement('tr');
-    r.cells.forEach(c => cell(tr, c));
-    const td = document.createElement('td'); const b = document.createElement('button'); b.textContent = actionLabel;
-    b.onclick = () => onAction(r.id, b); td.append(b); tr.append(td); el.append(tr);
-  });
+  if (!rows.length) { const tr = document.createElement('tr'); tr.append(td('Nada pendiente.')); el.append(tr); return; }
+  const hr = document.createElement('tr'); heads.forEach(h => { const th = document.createElement('th'); th.textContent = h; hr.append(th); }); el.append(hr);
+  rows.forEach(r => { const tr = document.createElement('tr'); r.forEach(v => tr.append(td(v))); el.append(tr); });
 }
+function btn(label, fn, cls) { const b = document.createElement('button'); b.textContent = label; if (cls) b.className = cls; b.onclick = () => fn(b); return b; }
+function acts(...bs) { const d = document.createElement('div'); d.className = 'acts'; bs.filter(Boolean).forEach(b => d.append(b)); return d; }
+function span(text, cls) { const s = document.createElement('span'); s.textContent = text; if (cls) s.className = cls; return s; }
+function thumb(src) {
+  if (!/^data:image\/(jpeg|png|webp);base64,/.test(src || '')) return span('—');
+  const i = new Image(); i.src = src; i.className = 'thumb'; i.alt = 'Foto de perfil';
+  i.onclick = () => { $('#lbImg').src = src; $('#lb').hidden = false; };
+  return i;
+}
+$('#lb').onclick = () => { $('#lb').hidden = true; };
+
+const ERR = {
+  premio_sin_reclamar: 'Ese premio todavía no fue reclamado (faltan nombre, apellido y foto).',
+  sin_autorizacion_publicar: 'El ganador no autorizó aparecer en la web.',
+  no_autorizado: 'Clave incorrecta, o todavía no definiste admin_key_hash en la base.'
+};
+const errText = e => { const m = (e && e.message) || ''; const k = Object.keys(ERR).find(x => m.includes(x)); return k ? ERR[k] : 'Error: ' + m; };
 
 async function load() {
   if (!sb) { setMsg('Configurá SUPABASE_URL y SUPABASE_ANON_KEY en este archivo.', true); return; }
   const key = $('#key').value;
   const { data, error } = await sb.rpc('admin_overview', { p_key: key });
-  if (error) {
-    const m = error.message || '';
-    setMsg(m.includes('no_autorizado')
-      ? 'Clave incorrecta, o todavía no definiste admin_key_hash en la base (ver README).'
-      : 'Error: ' + m, true);
-    $('#app').hidden = true; return;
-  }
+  if (error) { setMsg(errText(error), true); $('#app').hidden = true; return; }
   setMsg('Datos actualizados ' + new Date().toLocaleTimeString('es-AR'));
   $('#app').hidden = false;
 
   const s = data.stats, rtp = Number(s.rtp_theoretical || 0);
-  $('#stats').innerHTML = '';
+  $('#stats').textContent = '';
   [['Ingresos cobrados', fmt(s.revenue)], ['Tiros realizados', s.spins], ['Premios (pagados + adeudados)', fmt(s.owed_or_paid_out)], ['Retorno teórico (RTP)', (rtp * 100).toFixed(1) + ' %']]
     .forEach(([l, v]) => { const d = document.createElement('div'); d.className = 'stat'; const sm = document.createElement('small'); sm.textContent = l; const b = document.createElement('b'); b.textContent = v; d.append(sm, b); $('#stats').append(d); });
   const w = $('#rtpWarn');
   if (rtp >= 1) { w.hidden = false; w.textContent = 'Atención: con estos pesos el retorno teórico es ≥ 100 %. A largo plazo el sistema paga más de lo que cobra. Ajustá la tabla prizes.'; }
   else w.hidden = true;
 
-  table($('#tPay'), ['Fecha', 'Nombre', 'Teléfono', 'Email', 'Monto', 'Referencia'],
-    data.pending_payments.map(p => ({ id: p.reference, cells: [when(p.created_at), p.full_name, p.phone, p.email, fmt(p.amount), p.reference] })),
-    'Acreditar', async (ref, btn) => {
-      if (!confirm('¿Confirmás que recibiste la transferencia con referencia ' + ref + '?')) return;
-      btn.disabled = true;
-      const { error } = await sb.rpc('admin_approve_payment', { p_key: key, p_reference: ref });
-      setMsg(error ? 'Error: ' + error.message : 'Pago acreditado. La ficha ya le aparece al jugador.', !!error); load();
-    });
+  // Premios y probabilidades
+  const kinds = { cash: 'Dinero', item: 'Bien', free_spin: 'Tiro extra', none: 'Sin premio' };
+  const totalW = data.prizes.filter(p => p.active).reduce((a, p) => a + Number(p.weight), 0);
+  table($('#tPz'), ['Premio', 'Tipo', 'Valor', 'Peso', 'Probabilidad', '1 de cada…', 'Activo'],
+    data.prizes.map(p => {
+      const pr = Number(p.probability);
+      return [p.label, kinds[p.kind] || p.kind, p.kind === 'cash' || p.kind === 'item' ? fmt(p.amount) : '—', p.weight,
+        (pr * 100).toLocaleString('es-AR', { maximumFractionDigits: 4 }) + ' %',
+        pr > 0 ? Math.round(1 / pr).toLocaleString('es-AR') + ' tiros' : '—', p.active ? 'Sí' : 'No'];
+    }));
+  const tot = document.createElement('p'); tot.className = 'hint'; tot.style.marginTop = '6px';
+  tot.textContent = 'Suma de pesos activos: ' + totalW.toLocaleString('es-AR');
+  const old = $('#tPz').parentElement.nextElementSibling; if (old && old.dataset.tot) old.remove();
+  tot.dataset.tot = '1'; $('#tPz').parentElement.after(tot);
 
-  table($('#tPrize'), ['Fecha', 'Premio', 'Valor', 'Nombre', 'Teléfono', 'Email'],
-    data.pending_prizes.map(p => ({ id: p.id, cells: [when(p.created_at), p.prize_label, fmt(p.amount), p.full_name, p.phone, p.email] })),
-    'Marcar entregado', async (id, btn) => {
-      const notes = prompt('Nota de entrega (opcional): comprobante, fecha, DNI verificado…') ?? '';
-      btn.disabled = true;
-      const { error } = await sb.rpc('admin_fulfill', { p_key: key, p_spin_id: id, p_notes: notes });
-      setMsg(error ? 'Error: ' + error.message : 'Premio marcado como entregado.', !!error); load();
-    });
+  // Pagos pendientes
+  table($('#tPay'), ['Fecha', 'Nombre', 'Teléfono', 'Email', 'Monto', 'Referencia', ''],
+    data.pending_payments.map(p => [when(p.created_at), p.full_name, p.phone, p.email, fmt(p.amount), p.reference,
+      btn('Acreditar', async b => {
+        if (!confirm('¿Confirmás que recibiste la transferencia de ' + p.full_name + ' (ref. ' + p.reference + ')?')) return;
+        b.disabled = true;
+        const { error } = await sb.rpc('admin_approve_payment', { p_key: key, p_reference: p.reference });
+        setMsg(error ? errText(error) : 'Pago acreditado. La ficha ya le aparece al jugador.', !!error); load();
+      })]));
+
+  // Premios por reclamar / entregar
+  table($('#tPrize'), ['Fecha', 'Premio', 'Estado', 'Ganador (reclamo)', 'Foto', 'Comentario', 'Contacto de compra', ''],
+    data.pending_prizes.map(p => {
+      const name = p.claimed ? `${p.claim_first_name} ${p.claim_last_name}` : '—';
+      return [when(p.created_at), span(p.prize_label + ' · ' + fmt(p.amount)),
+        p.claimed ? span('Reclamado ✓', 'good') : span('SIN RECLAMAR', 'bad'),
+        name, p.claimed ? thumb(p.claim_photo) : '—',
+        p.claim_comment ? span('“' + p.claim_comment + '”', 'cm') : '—',
+        `${p.full_name} · ${p.phone} · ${p.email}`,
+        acts(
+          p.claimed ? btn('Marcar entregado', async b => {
+            const notes = prompt('Nota de entrega (opcional): comprobante, fecha, DNI verificado…') ?? '';
+            b.disabled = true;
+            const { error } = await sb.rpc('admin_fulfill', { p_key: key, p_spin_id: p.id, p_notes: notes });
+            setMsg(error ? errText(error) : 'Premio marcado como entregado.', !!error); load();
+          }) : null,
+          (p.claimed && p.claim_publish && !p.published) ? btn('Publicar ganador', async b => {
+            b.disabled = true;
+            const { error } = await sb.rpc('admin_publish_winner', { p_key: key, p_spin_id: p.id });
+            setMsg(error ? errText(error) : 'Ganador publicado en la web.', !!error); load();
+          }, 'sec') : null,
+          p.published ? span('Publicado ✓', 'good') : null,
+          (p.claimed && !p.claim_publish) ? span('No autorizó publicar', 'cm') : null
+        )];
+    }));
 }
 $('#load').onclick = load;
 $('#key').addEventListener('keydown', e => { if (e.key === 'Enter') load(); });
