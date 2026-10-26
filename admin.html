@@ -158,7 +158,7 @@ async function load() {
         p.claim_comment ? span('“' + p.claim_comment + '”', 'cm') : '—',
         `${p.full_name} · ${p.phone}`,
         acts(
-          p.claimed ? btn('Marcar entregado', async b => {
+          (p.claimed && p.fulfillment_status !== 'delivered') ? btn('Marcar entregado', async b => {
             const notes = prompt('Nota de entrega (opcional): comprobante, fecha, DNI verificado…') ?? '';
             b.disabled = true;
             const { error } = await sb.rpc('admin_fulfill', { p_key: key, p_spin_id: p.id, p_notes: notes });
@@ -169,6 +169,7 @@ async function load() {
             const { error } = await sb.rpc('admin_publish_winner', { p_key: key, p_spin_id: p.id });
             setMsg(error ? errText(error) : 'Ganador publicado en la web.', !!error); load();
           }, 'sec') : null,
+          p.fulfillment_status === 'delivered' ? span('Entregado ✓', 'good') : null,
           p.published ? span('Publicado ✓', 'good') : null,
           (p.claimed && !p.claim_publish) ? span('No autorizó publicar', 'cm') : null
         )];
