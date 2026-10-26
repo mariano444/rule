@@ -54,19 +54,29 @@ header .wrap{display:flex;align-items:center;justify-content:space-between;heigh
 /* stage */
 .stage{display:grid;grid-template-columns:1.1fr .9fr;gap:34px;align-items:center;padding:26px 0 36px}
 @media(max-width:900px){.stage{grid-template-columns:1fr}}
-.wheel-wrap{position:relative;width:min(94vw,580px);aspect-ratio:1;margin:0 auto}
+.wheel-wrap{position:relative;isolation:isolate;width:min(94vw,580px);aspect-ratio:1;margin:0 auto}
 .wheel-wrap::before{content:"";position:absolute;inset:-8%;border-radius:50%;background:radial-gradient(circle,rgba(245,197,66,.28),transparent 62%);animation:glow 3s ease-in-out infinite}
 @keyframes glow{50%{opacity:.55;transform:scale(1.04)}}
-#wheel{position:relative;width:100%;height:100%;display:block}
-.pointer{position:absolute;left:50%;top:-1.5%;width:10%;transform:translateX(-50%);z-index:3;transform-origin:50% 22%;filter:drop-shadow(0 4px 6px rgba(0,0,0,.6))}
-.hub{position:absolute;left:50%;top:50%;width:24%;aspect-ratio:1;transform:translate(-50%,-50%);border-radius:50%;z-index:3;border:4px solid #fff3c4;
-  background:radial-gradient(circle at 35% 30%,#fff3c4,var(--gold) 45%,var(--gold-3));color:#3a0a12;font-family:'Bebas Neue',sans-serif;font-size:clamp(20px,5.2vw,34px);letter-spacing:1.5px;
-  box-shadow:0 0 0 6px rgba(0,0,0,.35),0 0 34px rgba(245,197,66,.7);transition:transform .15s}
-.hub:hover:not(:disabled){transform:translate(-50%,-50%) scale(1.06)}
-.hub:active:not(:disabled){transform:translate(-50%,-50%) scale(.96)}
+#wheel{position:relative;z-index:1;width:100%;height:100%;display:block}
+.wheel-wrap::after{content:"";position:absolute;left:10%;right:10%;bottom:-6%;height:8%;border-radius:50%;background:radial-gradient(closest-side,rgba(0,0,0,.7),transparent);filter:blur(7px);z-index:-1}
+.rays{position:absolute;inset:-24%;border-radius:50%;pointer-events:none;opacity:0;transition:opacity .9s;z-index:0;
+  background:repeating-conic-gradient(from 0deg,rgba(255,224,138,.26) 0 4deg,transparent 4deg 14deg);
+  -webkit-mask:radial-gradient(circle,transparent 36%,#000 50%,transparent 70%);mask:radial-gradient(circle,transparent 36%,#000 50%,transparent 70%);
+  animation:raysspin 22s linear infinite}
+.wheel-wrap.hot .rays{opacity:1}
+@keyframes raysspin{to{transform:rotate(360deg)}}
+@keyframes shake{10%,90%{transform:translate3d(-1px,0,0)}20%,80%{transform:translate3d(3px,0,0)}30%,50%,70%{transform:translate3d(-6px,2px,0)}40%,60%{transform:translate3d(6px,-2px,0)}}
+.stage.shake{animation:shake .7s cubic-bezier(.36,.07,.19,.97)}
+.pointer{position:absolute;left:50%;top:-2%;width:10.5%;transform:translateX(-50%);z-index:3;transform-origin:50% 30%;filter:drop-shadow(0 5px 6px rgba(0,0,0,.65));will-change:transform}
+.hub{position:absolute;left:50%;top:50%;width:23%;aspect-ratio:1;transform:translate(-50%,-50%);border-radius:50%;z-index:3;border:0;
+  background:radial-gradient(circle at 34% 26%,#fffbe0 0,#ffe08a 16%,#f5c542 46%,#b8860b 82%,#6b4a06 100%);color:#3a0a12;font-family:'Bebas Neue',sans-serif;font-size:clamp(20px,5vw,33px);letter-spacing:1.5px;
+  text-shadow:0 1px 0 rgba(255,255,255,.65);
+  box-shadow:inset 0 -7px 12px rgba(90,50,0,.6),inset 0 5px 9px rgba(255,255,255,.75),0 8px 16px rgba(0,0,0,.6);transition:transform .15s}
+.hub:hover:not(:disabled){transform:translate(-50%,-50%) scale(1.05)}
+.hub:active:not(:disabled){transform:translate(-50%,-50%) scale(.95)}
 .hub.ready{animation:hubpulse 1.4s ease-in-out infinite}
-.hub:disabled{filter:grayscale(.4);cursor:wait}
-@keyframes hubpulse{50%{box-shadow:0 0 0 6px rgba(0,0,0,.35),0 0 60px rgba(255,224,138,1)}}
+.hub:disabled{filter:grayscale(.35);cursor:wait}
+@keyframes hubpulse{50%{box-shadow:inset 0 -7px 12px rgba(90,50,0,.6),inset 0 5px 9px rgba(255,255,255,.75),0 8px 16px rgba(0,0,0,.6),0 0 46px 8px rgba(255,224,138,.85)}}
 
 /* panel */
 .panel{background:var(--panel);border:1px solid var(--line);border-radius:22px;padding:26px;box-shadow:0 20px 60px rgba(0,0,0,.45)}
@@ -209,7 +219,13 @@ footer strong{color:var(--text)}
 
   <div class="stage">
     <div class="wheel-wrap" id="wheelWrap">
-      <svg class="pointer" viewBox="0 0 60 80" aria-hidden="true"><defs><linearGradient id="pg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff3c4"/><stop offset=".5" stop-color="#f5c542"/><stop offset="1" stop-color="#b8860b"/></linearGradient></defs><path d="M30 78 L4 22 A28 28 0 1 1 56 22 Z" fill="url(#pg)" stroke="#3a0a12" stroke-width="3"/><circle cx="30" cy="24" r="8" fill="#c1121f" stroke="#3a0a12" stroke-width="2"/></svg>
+      <div class="rays" aria-hidden="true"></div>
+      <svg class="pointer" viewBox="0 0 60 80" aria-hidden="true"><defs>
+        <linearGradient id="pg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fffbe0"/><stop offset=".35" stop-color="#f5c542"/><stop offset=".75" stop-color="#b8860b"/><stop offset="1" stop-color="#6b4a06"/></linearGradient>
+        <radialGradient id="pj" cx=".35" cy=".3" r=".8"><stop offset="0" stop-color="#ff9aa2"/><stop offset=".5" stop-color="#c1121f"/><stop offset="1" stop-color="#5a0610"/></radialGradient></defs>
+        <path d="M30 79 L9 38 C2 22 12 6 30 6 C48 6 58 22 51 38 Z" fill="url(#pg)" stroke="#2a1a02" stroke-width="2.5" stroke-linejoin="round"/>
+        <path d="M30 70 L15 38 C10 25 17 12 30 12" fill="none" stroke="rgba(255,255,255,.55)" stroke-width="2.2" stroke-linecap="round"/>
+        <circle cx="30" cy="24" r="10" fill="#2a1a02"/><circle cx="30" cy="24" r="8" fill="url(#pj)" stroke="#fff3c4" stroke-width="1.2"/><circle cx="27" cy="21" r="2.2" fill="rgba(255,255,255,.85)"/></svg>
       <canvas id="wheel"></canvas>
       <button class="hub ready" id="hub">GIRAR</button>
     </div>
@@ -227,7 +243,6 @@ footer strong{color:var(--text)}
       <form id="buyForm" novalidate>
         <div class="field"><label for="fName">Nombre y apellido</label><input id="fName" autocomplete="name" maxlength="80" required></div>
         <div class="field"><label for="fPhone">WhatsApp / teléfono (para coordinar tu premio)</label><input id="fPhone" type="tel" autocomplete="tel" maxlength="20" required></div>
-        <div class="field"><label for="fMail">Email</label><input id="fMail" type="email" autocomplete="email" maxlength="120" required></div>
         <label class="check"><input type="checkbox" id="fAdult"> Declaro ser mayor de 18 años.</label>
         <label class="check"><input type="checkbox" id="fTerms"> Acepto las bases y condiciones y que, si gano un premio mayor, se muestre mi nombre de pila e inicial en la lista de ganadores.</label>
         <button class="btn" type="submit" id="buyBtn">COMPRAR FICHA · <span class="pp">$10.000</span></button>
@@ -263,7 +278,7 @@ footer strong{color:var(--text)}
     <h3>PREGUNTAS FRECUENTES</h3>
     <details><summary>¿Cómo se decide el premio?</summary><p>Al girar, el servidor sortea el resultado con un generador aleatorio criptográfico y recién después la rueda se anima hasta ese gajo. La animación es solo visual: no se puede influir en el resultado.</p></details>
     <details><summary>¿Cuándo se acredita mi ficha?</summary><p>Apenas se confirma tu transferencia. La pantalla se actualiza sola; si cerrás la página, tu ficha queda guardada en este dispositivo.</p></details>
-    <details><summary>¿Cómo cobro mi premio?</summary><p>Después de ganar tocá “Reclamar mi premio” y completá tu nombre, apellido y una foto de perfil. Validamos tus datos y coordinamos el pago o la entrega por teléfono o email.</p></details>
+    <details><summary>¿Cómo cobro mi premio?</summary><p>Después de ganar tocá “Reclamar mi premio” y completá tu nombre, apellido y una foto de perfil. Validamos tus datos y coordinamos el pago o la entrega por teléfono o WhatsApp.</p></details>
     <details><summary>¿Qué pasa con “Otro tiro”?</summary><p>Se acredita una ficha gratis en tu cuenta al instante y podés girar de nuevo.</p></details>
   </section>
 </main>
@@ -271,7 +286,7 @@ footer strong{color:var(--text)}
 <footer>
   <div class="wrap">
     <p><strong>+18 · Juego responsable.</strong> Jugar implica riesgo de perder el dinero apostado. Jugá solo con dinero que puedas permitirte perder. Si sentís que el juego deja de ser un entretenimiento, pedí ayuda.</p>
-    <p id="licenseTxt" style="margin-top:8px; display:none;"></p>
+    <p id="licenseTxt" style="margin-top:8px"></p>
   </div>
 </footer>
 
@@ -415,7 +430,19 @@ function beep(freq, dur, type = 'square', vol = .05, delay = 0) {
   o.connect(g); g.connect(c.destination); o.start(t); o.stop(t + dur + .02);
 }
 const sfx = {
-  tick() { beep(820 + Math.random() * 120, .035, 'square', .035); },
+  tick(w = 6) { beep(700 + Math.min(520, w * 26) + Math.random() * 90, .035, 'square', .02 + Math.min(.045, w * .0032)); },
+  thud() { beep(95, .3, 'sine', .17); beep(58, .38, 'sine', .13, .02); },
+  whoosh() {
+    if (!soundOn) return; const c = ac(); if (!c) return;
+    const len = (c.sampleRate * 1.3) | 0, buf = c.createBuffer(1, len, c.sampleRate), d = buf.getChannelData(0);
+    for (let i = 0; i < len; i++) d[i] = (Math.random() * 2 - 1) * (1 - i / len);
+    const src = c.createBufferSource(); src.buffer = buf;
+    const f = c.createBiquadFilter(); f.type = 'bandpass'; f.Q.value = .8;
+    f.frequency.setValueAtTime(300, c.currentTime); f.frequency.exponentialRampToValueAtTime(2400, c.currentTime + .55);
+    const g = c.createGain(); g.gain.setValueAtTime(.0001, c.currentTime);
+    g.gain.exponentialRampToValueAtTime(.12, c.currentTime + .25); g.gain.exponentialRampToValueAtTime(.0001, c.currentTime + 1.2);
+    src.connect(f); f.connect(g); g.connect(c.destination); src.start();
+  },
   win() { [523, 659, 784, 1047, 1319].forEach((f, i) => beep(f, .3, 'triangle', .09, i * .11)); },
   free() { [660, 880, 1100].forEach((f, i) => beep(f, .2, 'sine', .09, i * .09)); },
   lose() { [330, 262].forEach((f, i) => beep(f, .35, 'sine', .07, i * .2)); },
@@ -423,10 +450,15 @@ const sfx = {
 };
 function paintSound() { $('#soundBtn').textContent = soundOn ? '🔊' : '🔇'; }
 
-/* ====================== RUEDA (canvas) ====================== */
+/* ====================== RUEDA (canvas, por capas) ====================== */
 const canvas = $('#wheel'), ctx = canvas.getContext('2d');
-const pointerEl = $('.pointer');
+const pointerEl = $('.pointer'), wrapEl = $('#wheelWrap'), stageEl = $('.stage');
 const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
+const BULBS = 28;
+let layers = null, layerKey = '';
+let omega = 0, lastT = 0, lastIdx = null;          // velocidad angular (rad/s) y último gajo bajo la paleta
+let pAng = 0, pVel = 0;                            // física de la paleta
+let winIdx = -1, winKind = '', winT0 = 0;          // gajo ganador resaltado
 
 function splitLabel(label) {
   if (label.length > 11 && label.includes(' ')) {
@@ -440,99 +472,252 @@ function splitLabel(label) {
   return [label];
 }
 
-function draw(now) {
-  const dpr = window.devicePixelRatio || 1;
-  const size = canvas.clientWidth;
-  if (!size) return;
-  if (canvas.width !== Math.round(size * dpr)) { canvas.width = canvas.height = Math.round(size * dpr); }
-  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-  ctx.clearRect(0, 0, size, size);
-  const c = size / 2, R = size * .485;
-
-  // aro exterior dorado
-  const rim = ctx.createRadialGradient(c, c, R * .82, c, c, R);
-  rim.addColorStop(0, '#6b4a06'); rim.addColorStop(.35, '#f5c542'); rim.addColorStop(.7, '#fff0b0'); rim.addColorStop(1, '#8a6208');
-  ctx.beginPath(); ctx.arc(c, c, R, 0, TAU); ctx.fillStyle = rim; ctx.fill();
-  ctx.beginPath(); ctx.arc(c, c, R * .87, 0, TAU); ctx.fillStyle = '#1a0a10'; ctx.fill();
-
-  // focos
-  const bulbs = 24, rb = R * .935;
-  const phase = Math.floor(now / (spinning ? 90 : 380));
-  for (let i = 0; i < bulbs; i++) {
-    const a = (i / bulbs) * TAU, x = c + Math.cos(a) * rb, y = c + Math.sin(a) * rb;
-    const lit = (i + phase) % 2 === 0;
-    ctx.beginPath(); ctx.arc(x, y, R * .021, 0, TAU);
-    if (lit) { ctx.shadowColor = '#fff3a0'; ctx.shadowBlur = 14; ctx.fillStyle = '#fffbe0'; }
-    else { ctx.shadowBlur = 0; ctx.fillStyle = '#7a5a10'; }
-    ctx.fill(); ctx.shadowBlur = 0;
-  }
-
-  const n = prizes.length;
-  if (!n) return;
-  const seg = TAU / n, rs = R * .85;
-
-  for (let i = 0; i < n; i++) {
-    const a0 = rot + i * seg, a1 = a0 + seg;
-    ctx.beginPath(); ctx.moveTo(c, c); ctx.arc(c, c, rs, a0, a1); ctx.closePath();
-    const g = ctx.createRadialGradient(c, c, rs * .15, c, c, rs);
-    g.addColorStop(0, shade(prizes[i].color, .35)); g.addColorStop(1, prizes[i].color);
-    ctx.fillStyle = g; ctx.fill();
-    ctx.strokeStyle = 'rgba(245,197,66,.85)'; ctx.lineWidth = 2; ctx.stroke();
-
-    // texto
-    ctx.save();
-    ctx.translate(c, c); ctx.rotate(a0 + seg / 2);
-    ctx.textAlign = 'right'; ctx.textBaseline = 'middle';
-    const lines = splitLabel(prizes[i].label);
-    const maxW = rs * .56;
-    let fs = rs * (lines.length > 1 ? .095 : .115);
-    ctx.font = `800 ${fs}px Poppins, sans-serif`;
-    const widest = Math.max(...lines.map(l => ctx.measureText(l).width));
-    if (widest > maxW) { fs *= maxW / widest; ctx.font = `800 ${fs}px Poppins, sans-serif`; }
-    ctx.lineJoin = 'round'; ctx.lineWidth = fs * .18; ctx.strokeStyle = 'rgba(0,0,0,.55)'; ctx.fillStyle = '#fff8e1';
-    const x = rs * .93, lh = fs * 1.08, y0 = -((lines.length - 1) * lh) / 2;
-    lines.forEach((l, k) => { ctx.strokeText(l, x, y0 + k * lh); ctx.fillText(l, x, y0 + k * lh); });
-    ctx.restore();
-  }
-
-  // borde interno y centro
-  ctx.beginPath(); ctx.arc(c, c, rs, 0, TAU); ctx.strokeStyle = '#f5c542'; ctx.lineWidth = 4; ctx.stroke();
-  ctx.beginPath(); ctx.arc(c, c, R * .2, 0, TAU); ctx.fillStyle = '#1a0a10'; ctx.fill();
+function shade(hex, amt) {
+  const n = parseInt(hex.slice(1), 16), f = v => Math.max(0, Math.min(255, v + 255 * amt)) | 0;
+  return `rgb(${f((n >> 16) & 255)},${f((n >> 8) & 255)},${f(n & 255)})`;
 }
 
-function shade(hex, amt) {
-  const n = parseInt(hex.slice(1), 16);
-  const r = Math.min(255, ((n >> 16) & 255) + 255 * amt), g = Math.min(255, ((n >> 8) & 255) + 255 * amt), b = Math.min(255, (n & 255) + 255 * amt);
-  return `rgb(${r | 0},${g | 0},${b | 0})`;
+// degradé cónico (aro metálico); en navegadores viejos cae a uno lineal
+function conic(g, cx, cy, ang, stops) {
+  const k = g.createConicGradient ? g.createConicGradient(ang, cx, cy) : g.createLinearGradient(0, 0, cx * 2, cy * 2);
+  stops.forEach(([o, c]) => k.addColorStop(o, c)); return k;
+}
+const METAL = [[0, '#fff3c4'], [.1, '#b8860b'], [.22, '#f7d36b'], [.34, '#6b4a06'], [.5, '#ffe9a0'], [.62, '#9a6f0a'], [.76, '#f7d36b'], [.88, '#7a5300'], [1, '#fff3c4']];
+
+function buildLayers(size) {
+  const q = Math.min(2.5, Math.max(window.devicePixelRatio || 1, 1.5));
+  const mk = () => { const cv2 = document.createElement('canvas'); cv2.width = cv2.height = Math.round(size * q); const g = cv2.getContext('2d'); g.scale(q, q); return [cv2, g]; };
+  const [disk, d] = mk(), [over, o] = mk();
+  const c = size / 2, R = size * .485, rs = R * .85, n = prizes.length, seg = TAU / n;
+
+  /* ---------- DISCO (es la capa que gira) ---------- */
+  d.beginPath(); d.arc(c, c, rs, 0, TAU); d.fillStyle = '#120609'; d.fill();
+  for (let i = 0; i < n; i++) {
+    const p = prizes[i], a0 = i * seg, a1 = a0 + seg;
+    d.beginPath(); d.moveTo(c, c); d.arc(c, c, rs, a0, a1); d.closePath();
+    const g = d.createRadialGradient(c, c, rs * .1, c, c, rs);
+    g.addColorStop(0, shade(p.color, -.22)); g.addColorStop(.5, p.color); g.addColorStop(1, shade(p.color, .14));
+    d.fillStyle = g; d.fill();
+    // brillo de faceta: un borde claro y el otro oscuro
+    const L = d.createLinearGradient(c + Math.cos(a0) * rs * .7, c + Math.sin(a0) * rs * .7, c + Math.cos(a1) * rs * .7, c + Math.sin(a1) * rs * .7);
+    L.addColorStop(0, 'rgba(255,255,255,.15)'); L.addColorStop(.5, 'rgba(255,255,255,0)'); L.addColorStop(1, 'rgba(0,0,0,.2)');
+    d.fillStyle = L; d.fill();
+  }
+  // anillos decorativos
+  d.lineWidth = 1.5; d.strokeStyle = 'rgba(245,197,66,.5)';
+  d.beginPath(); d.arc(c, c, rs * .965, 0, TAU); d.stroke();
+  d.beginPath(); d.arc(c, c, rs * .33, 0, TAU); d.stroke();
+  // separadores en relieve
+  for (let i = 0; i < n; i++) {
+    const a = i * seg, x0 = c + Math.cos(a) * rs * .2, y0 = c + Math.sin(a) * rs * .2, x1 = c + Math.cos(a) * rs, y1 = c + Math.sin(a) * rs;
+    d.lineCap = 'round';
+    d.beginPath(); d.moveTo(x0, y0); d.lineTo(x1, y1); d.lineWidth = 4.5; d.strokeStyle = 'rgba(0,0,0,.5)'; d.stroke();
+    d.beginPath(); d.moveTo(x0, y0); d.lineTo(x1, y1); d.lineWidth = 1.8; d.strokeStyle = '#f5c542'; d.stroke();
+  }
+  // textos
+  for (let i = 0; i < n; i++) {
+    d.save(); d.translate(c, c); d.rotate(i * seg + seg / 2);
+    d.textAlign = 'right'; d.textBaseline = 'middle';
+    const lines = splitLabel(prizes[i].label), maxW = rs * .54;
+    let fs = rs * (lines.length > 1 ? .095 : .115);
+    d.font = `800 ${fs}px Poppins, sans-serif`;
+    const widest = Math.max(...lines.map(l => d.measureText(l).width));
+    if (widest > maxW) { fs *= maxW / widest; d.font = `800 ${fs}px Poppins, sans-serif`; }
+    d.lineJoin = 'round'; d.lineWidth = fs * .2; d.strokeStyle = 'rgba(0,0,0,.6)';
+    const x = rs * .9, lh = fs * 1.08, y0 = -((lines.length - 1) * lh) / 2;
+    const tg = d.createLinearGradient(0, -fs, 0, fs); tg.addColorStop(0, '#ffffff'); tg.addColorStop(1, '#ffe9a0');
+    d.fillStyle = tg; d.shadowColor = 'rgba(0,0,0,.7)'; d.shadowBlur = 3; d.shadowOffsetY = 1;
+    lines.forEach((l, k) => { d.strokeText(l, x, y0 + k * lh); d.fillText(l, x, y0 + k * lh); });
+    d.restore();
+  }
+  // borde del disco
+  d.beginPath(); d.arc(c, c, rs - 1.5, 0, TAU); d.lineWidth = 3; d.strokeStyle = 'rgba(0,0,0,.55)'; d.stroke();
+  d.beginPath(); d.arc(c, c, rs, 0, TAU); d.lineWidth = 3.5; d.strokeStyle = '#f5c542'; d.stroke();
+  // clavijas doradas entre gajos (las que golpea la paleta)
+  const pr = Math.max(3, R * .02);
+  for (let i = 0; i < n; i++) {
+    const a = i * seg, x = c + Math.cos(a) * rs * .972, y = c + Math.sin(a) * rs * .972;
+    d.beginPath(); d.arc(x + 1.5, y + 2, pr, 0, TAU); d.fillStyle = 'rgba(0,0,0,.5)'; d.fill();
+    const g = d.createRadialGradient(x - pr * .35, y - pr * .4, pr * .1, x, y, pr);
+    g.addColorStop(0, '#fffbe0'); g.addColorStop(.45, '#f5c542'); g.addColorStop(1, '#6b4a06');
+    d.beginPath(); d.arc(x, y, pr, 0, TAU); d.fillStyle = g; d.fill();
+  }
+
+  /* ---------- CAPA FIJA (por encima del disco): sombras, brillo, aro, buje ---------- */
+  // sombra que proyecta el buje central
+  let g = o.createRadialGradient(c, c, size * .11, c, c, size * .22);
+  g.addColorStop(0, 'rgba(0,0,0,.6)'); g.addColorStop(1, 'rgba(0,0,0,0)');
+  o.beginPath(); o.arc(c, c, size * .22, 0, TAU); o.fillStyle = g; o.fill();
+  // viñeta de profundidad
+  g = o.createRadialGradient(c, c, rs * .5, c, c, rs);
+  g.addColorStop(0, 'rgba(0,0,0,0)'); g.addColorStop(1, 'rgba(0,0,0,.4)');
+  o.beginPath(); o.arc(c, c, rs, 0, TAU); o.fillStyle = g; o.fill();
+  // reflejo de vidrio
+  o.save(); o.beginPath(); o.arc(c, c, rs, 0, TAU); o.clip();
+  g = o.createLinearGradient(c - rs, c - rs, c + rs, c + rs);
+  g.addColorStop(0, 'rgba(255,255,255,.28)'); g.addColorStop(.36, 'rgba(255,255,255,.06)'); g.addColorStop(.5, 'rgba(255,255,255,0)'); g.addColorStop(1, 'rgba(0,0,0,.25)');
+  o.fillStyle = g; o.fillRect(0, 0, size, size);
+  o.beginPath(); o.arc(c, c, rs * .93, Math.PI * 1.08, Math.PI * 1.5);
+  o.lineWidth = rs * .05; o.lineCap = 'round'; o.strokeStyle = 'rgba(255,255,255,.16)'; o.shadowColor = 'rgba(255,255,255,.4)'; o.shadowBlur = 10; o.stroke();
+  o.restore();
+  // aro metálico
+  o.beginPath(); o.arc(c, c, R, 0, TAU); o.arc(c, c, rs + 1, 0, TAU, true);
+  o.fillStyle = conic(o, c, c, -Math.PI / 2, METAL); o.fill();
+  o.beginPath(); o.arc(c, c, R, 0, TAU); o.lineWidth = 3; o.strokeStyle = '#2a1a02'; o.stroke();
+  o.beginPath(); o.arc(c, c, R - 2.5, 0, TAU); o.lineWidth = 1; o.strokeStyle = 'rgba(255,255,255,.6)'; o.stroke();
+  o.beginPath(); o.arc(c, c, rs + 2.5, 0, TAU); o.lineWidth = 3; o.strokeStyle = '#3a2700'; o.stroke();
+  o.beginPath(); o.arc(c, c, rs + 5.5, 0, TAU); o.lineWidth = 1; o.strokeStyle = 'rgba(255,255,255,.4)'; o.stroke();
+  // casquillos de los focos
+  const rb = R * .925;
+  for (let i = 0; i < BULBS; i++) {
+    const a = -Math.PI / 2 + (i / BULBS) * TAU, x = c + Math.cos(a) * rb, y = c + Math.sin(a) * rb;
+    o.beginPath(); o.arc(x, y, R * .031, 0, TAU); o.fillStyle = '#2a1a02'; o.fill();
+    o.lineWidth = 1; o.strokeStyle = 'rgba(255,224,138,.8)'; o.stroke();
+  }
+  // anillo del buje con tornillos
+  const hr0 = size * .124, hr1 = size * .152;
+  o.beginPath(); o.arc(c, c, hr1, 0, TAU); o.arc(c, c, hr0, 0, TAU, true);
+  o.fillStyle = conic(o, c, c, 0, METAL); o.fill();
+  o.beginPath(); o.arc(c, c, hr1, 0, TAU); o.lineWidth = 2; o.strokeStyle = '#2a1a02'; o.stroke();
+  o.beginPath(); o.arc(c, c, hr0, 0, TAU); o.lineWidth = 2; o.strokeStyle = '#3a2700'; o.stroke();
+  for (let i = 0; i < 8; i++) {
+    const a = (i / 8) * TAU + .2, x = c + Math.cos(a) * (hr0 + hr1) / 2, y = c + Math.sin(a) * (hr0 + hr1) / 2, sr = size * .0062;
+    const sg = o.createRadialGradient(x - sr * .3, y - sr * .3, 0, x, y, sr); sg.addColorStop(0, '#fffbe0'); sg.addColorStop(1, '#6b4a06');
+    o.beginPath(); o.arc(x, y, sr, 0, TAU); o.fillStyle = sg; o.fill();
+    o.beginPath(); o.moveTo(x - Math.cos(a + .8) * sr * .8, y - Math.sin(a + .8) * sr * .8); o.lineTo(x + Math.cos(a + .8) * sr * .8, y + Math.sin(a + .8) * sr * .8);
+    o.lineWidth = 1; o.strokeStyle = 'rgba(40,24,0,.8)'; o.stroke();
+  }
+  return { disk, over };
+}
+
+function draw(now) {
+  const dpr = window.devicePixelRatio || 1, size = canvas.clientWidth;
+  if (!size) return;
+  const px = Math.round(size * dpr);
+  if (canvas.width !== px) canvas.width = canvas.height = px;
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0); ctx.clearRect(0, 0, size, size);
+  const n = prizes.length; if (!n) return;
+  const key = size + '|' + dpr + '|' + prizes.map(p => p.label + p.color).join();
+  if (key !== layerKey) { layers = buildLayers(size); layerKey = key; }
+  const c = size / 2, R = size * .485, rs = R * .85, seg = TAU / n;
+  ctx.imageSmoothingEnabled = true; ctx.imageSmoothingQuality = 'high';
+
+  // 1) disco giratorio + estela de movimiento cuando va rápido
+  ctx.save(); ctx.translate(c, c); ctx.rotate(rot);
+  ctx.drawImage(layers.disk, -c, -c, size, size);
+  const w = Math.abs(omega);
+  if (w > 5 && !reduceMotion) {
+    const dir = Math.sign(omega);
+    for (let k = 1; k <= 3; k++) { ctx.save(); ctx.rotate(-dir * w * .011 * k); ctx.globalAlpha = .3 / k; ctx.drawImage(layers.disk, -c, -c, size, size); ctx.restore(); }
+  }
+  ctx.restore();
+
+  // 2) gajo ganador: se apagan los demás y el premio brilla
+  if (winIdx >= 0) {
+    const t = now - winT0;
+    if (t > 8200) winIdx = -1;
+    else {
+      const fade = Math.min(1, t / 500) * (t > 7000 ? Math.max(0, 1 - (t - 7000) / 1200) : 1);
+      const a0 = rot + winIdx * seg, a1 = a0 + seg, pulse = .5 + .5 * Math.sin(now / 140);
+      ctx.save(); ctx.globalAlpha = fade;
+      ctx.beginPath(); ctx.arc(c, c, rs, 0, TAU); ctx.moveTo(c, c); ctx.arc(c, c, rs, a0, a1); ctx.closePath();
+      ctx.fillStyle = 'rgba(0,0,0,.5)'; ctx.fill('evenodd');
+      ctx.beginPath(); ctx.moveTo(c, c); ctx.arc(c, c, rs, a0, a1); ctx.closePath();
+      ctx.fillStyle = `rgba(255,240,170,${.1 + .24 * pulse})`; ctx.fill();
+      ctx.lineWidth = 4; ctx.strokeStyle = '#fff3c4'; ctx.shadowColor = '#ffe08a'; ctx.shadowBlur = 20; ctx.stroke();
+      ctx.restore();
+    }
+  }
+
+  // 3) capa fija: sombras, vidrio, aro y buje
+  ctx.drawImage(layers.over, 0, 0, size, size);
+
+  // 4) focos (animados)
+  const rb = R * .925, br = R * .021;
+  const celebrate = winIdx >= 0 && winKind !== 'none';
+  const step = Math.floor(now / (spinning ? 65 : 420)), flash = Math.floor(now / 170) % 2;
+  for (let i = 0; i < BULBS; i++) {
+    const a = -Math.PI / 2 + (i / BULBS) * TAU, x = c + Math.cos(a) * rb, y = c + Math.sin(a) * rb;
+    const lit = celebrate ? (i % 2 === flash) : (((i - step) % 3) + 3) % 3 === 0;
+    ctx.beginPath(); ctx.arc(x, y, br, 0, TAU);
+    if (lit) {
+      const g = ctx.createRadialGradient(x - br * .3, y - br * .3, 0, x, y, br);
+      g.addColorStop(0, '#ffffff'); g.addColorStop(.5, '#fff3a0'); g.addColorStop(1, '#f0b429');
+      ctx.shadowColor = '#fff3a0'; ctx.shadowBlur = br * 3.2; ctx.fillStyle = g;
+    } else {
+      const g = ctx.createRadialGradient(x - br * .3, y - br * .3, 0, x, y, br);
+      g.addColorStop(0, '#a98a3a'); g.addColorStop(1, '#4a3606');
+      ctx.shadowBlur = 0; ctx.fillStyle = g;
+    }
+    ctx.fill(); ctx.shadowBlur = 0;
+    ctx.beginPath(); ctx.arc(x - br * .32, y - br * .34, br * .26, 0, TAU); ctx.fillStyle = 'rgba(255,255,255,.75)'; ctx.fill();
+  }
 }
 
 const idxAt = r => { const n = prizes.length; return Math.floor(mod(-Math.PI / 2 - r, TAU) / (TAU / n)) % n; };
 
+// la paleta es un resorte amortiguado: cada clavija que pasa la empuja
+function kickPointer() {
+  if (omega < 0) return;
+  pVel -= Math.min(14, 3 + omega * .9);
+}
+function stepPointer(dt) {
+  pVel += (-420 * pAng - 18 * pVel) * dt; pAng += pVel * dt;
+  if (pAng > 0) { pAng = 0; pVel = Math.abs(pVel) * .15; }
+  if (pAng < -.6) { pAng = -.6; pVel = 0; }
+  pointerEl.style.transform = `translateX(-50%) rotate(${pAng}rad)`;
+}
+
 function frame(now) {
+  const dt = Math.min(.05, Math.max(.001, (now - (lastT || now)) / 1000)); lastT = now;
+  const prev = rot;
   if (spinAnim) spinAnim(now);
-  else if (!reduceMotion) rot += .0016;
+  else if (!reduceMotion) rot += .1 * dt;                     // giro lento en reposo
+  omega += (((rot - prev) / dt) - omega) * Math.min(1, dt * 14);
+  if (prizes.length) {
+    const i = idxAt(rot);
+    if (lastIdx !== null && i !== lastIdx) { kickPointer(); if (spinAnim && omega > 0) sfx.tick(omega); }
+    lastIdx = i;
+  }
+  stepPointer(dt);
   draw(now);
   requestAnimationFrame(frame);
 }
 
-function animateTo(position) {
+function animateTo(position, kind) {
   return new Promise(resolve => {
+    winIdx = -1; wrapEl.classList.add('hot');
     const n = prizes.length, seg = TAU / n;
     const jitter = (Math.random() - .5) * seg * .7;
+    const wind = reduceMotion ? 0 : .5, windMs = reduceMotion ? 0 : 520;
+    const cur = rot, start = cur - wind;
     const desired = -Math.PI / 2 - (position + .5) * seg + jitter;
-    const cur = rot;
-    const target = cur + (reduceMotion ? 2 : 6 + Math.floor(Math.random() * 3)) * TAU + mod(desired - cur, TAU);
-    const dur = reduceMotion ? 1800 : 7200, t0 = performance.now();
-    let last = idxAt(cur);
+    const turns = reduceMotion ? 2 : 6 + Math.floor(Math.random() * 3);
+    const target = start + turns * TAU + mod(desired - start, TAU);
+    const dur = reduceMotion ? 1800 : 8200, t0 = performance.now();
+    // perfil de velocidad: arranque suave y frenado largo (la última clavija se arrastra con suspenso)
+    const N = 300, tab = new Float32Array(N + 1); let acc = 0;
+    for (let i = 1; i <= N; i++) { const p = i / N, x = Math.min(1, p / .06); acc += Math.pow(1 - p, 2.3) * x * x * (3 - 2 * x); tab[i] = acc; }
+    for (let i = 1; i <= N; i++) tab[i] /= acc;
+    const pos = p => { const f = p * N, i = Math.min(N - 1, Math.floor(f)); return tab[i] + (tab[i + 1] - tab[i]) * (f - i); };
+    let whooshed = false;
     spinAnim = now => {
-      const p = Math.min(1, (now - t0) / dur), e = 1 - Math.pow(1 - p, 4);
-      rot = cur + (target - cur) * e;
-      const i = idxAt(rot);
-      if (i !== last) { last = i; sfx.tick(); pointerEl.animate([{ transform: 'translateX(-50%) rotate(0)' }, { transform: 'translateX(-50%) rotate(-16deg)' }, { transform: 'translateX(-50%) rotate(0)' }], { duration: 110 }); }
-      if (p >= 1) { spinAnim = null; resolve(); }
+      const t = now - t0;
+      if (t < windMs) { const p = t / windMs; rot = cur - wind * (p * p * (3 - 2 * p)); return; }   // se echa hacia atrás para tomar impulso
+      if (!whooshed) { whooshed = true; sfx.whoosh(); }
+      const p = Math.min(1, (t - windMs) / dur);
+      rot = start + (target - start) * pos(p);
+      if (p >= 1) {
+        spinAnim = null; rot = target;
+        winKind = kind || ''; winIdx = position; winT0 = performance.now();
+        sfx.thud();
+        setTimeout(() => wrapEl.classList.remove('hot'), (kind === 'cash' || kind === 'item') ? 6500 : 1000);
+        resolve();
+      }
     };
   });
 }
+function shakeStage() { stageEl.classList.remove('shake'); void stageEl.offsetWidth; stageEl.classList.add('shake'); setTimeout(() => stageEl.classList.remove('shake'), 800); }
 
 /* ====================== CONFETI ====================== */
 const cv = $('#confetti'), cx = cv.getContext('2d');
@@ -725,10 +910,9 @@ function startPolling(ref) {
 }
 
 function validate() {
-  const name = $('#fName').value.trim(), phone = $('#fPhone').value.trim(), mail = $('#fMail').value.trim();
+  const name = $('#fName').value.trim(), phone = $('#fPhone').value.trim();
   if (name.length < 3) return 'Ingresá tu nombre y apellido.';
   if (phone.replace(/\D/g, '').length < 8) return 'Ingresá un teléfono válido.';
-  if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(mail)) return 'Ingresá un email válido.';
   if (!$('#fAdult').checked) return 'Tenés que ser mayor de 18 años para jugar.';
   if (!$('#fTerms').checked) return 'Tenés que aceptar las bases y condiciones.';
   return '';
@@ -746,7 +930,7 @@ async function buy(e) {
       const r = await fetch(CONFIG.SUPABASE_URL + '/functions/v1/create-payment', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', apikey: CONFIG.SUPABASE_ANON_KEY },
-        body: JSON.stringify({ full_name: $('#fName').value, phone: $('#fPhone').value, email: $('#fMail').value, adult: true, terms: true })
+        body: JSON.stringify({ full_name: $('#fName').value, phone: $('#fPhone').value, adult: true, terms: true })
       });
       const info = await r.json();
       if (!r.ok) {
@@ -796,7 +980,10 @@ async function spin() {
   if (res.new_token_code) tokens.push(res.new_token_code);
   if (res.claim_code) { claims.push({ code: res.claim_code, label: res.label, amount: res.amount }); store.set('mr_claims', claims); renderClaims(); }
   store.set('mr_tokens', tokens);
-  await animateTo(res.position);
+  await animateTo(res.position, res.kind);
+  const bigWin = (res.kind === 'cash' || res.kind === 'item');
+  if (bigWin && res.amount >= 1000000) shakeStage();
+  await new Promise(r => setTimeout(r, bigWin ? 1700 : (res.kind === 'free_spin' ? 1100 : 700)));   // se ve el gajo ganador antes del cartel
   spinning = false; renderTokens(); showResult(res);
   loadWinners();
 }
