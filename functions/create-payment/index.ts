@@ -49,7 +49,7 @@ async function createGaliopayLink(sb: SB, reference: string, price: number, orig
   const sandbox = (await cfg(sb, "galiopay_sandbox", "GALIOPAY_SANDBOX")) === "true";
 
   const body: Record<string, unknown> = {
-    items: [{ title: "Ficha", quantity: 1, unitPrice: price, currencyId: "ARS" }],
+    items: [{ title: "Ficha de Mega Ruleta", quantity: 1, unitPrice: price, currencyId: "ARS" }],
     referenceId: reference,                // solo letras, números, _ y -
     notificationUrl,
     sandbox,
@@ -80,12 +80,10 @@ Deno.serve(async (req) => {
     const b = await req.json();
     const full_name = String(b.full_name ?? "").trim().slice(0, 80);
     const phone = String(b.phone ?? "").replace(/[^\d+]/g, "").slice(0, 20);
-    const email = String(b.email ?? "").trim().toLowerCase().slice(0, 120);
 
     if (
       full_name.length < 3 ||
       phone.replace(/\D/g, "").length < 8 ||
-      !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email) ||
       b.adult !== true ||
       b.terms !== true
     ) return json({ error: "datos_invalidos" }, 400);
@@ -94,26 +92,35 @@ Deno.serve(async (req) => {
       auth: { persistSession: false },
     });
 
-    // Límite básico anti-abuso: máx. 5 pagos pendientes por email en la última hora
+    // Límite básico anti-abuso: máx. 5 pagos pendientes por teléfono en la última hora
     const since = new Date(Date.now() - 3600_000).toISOString();
     const { count } = await sb
       .from("payments")
-      .select("id, players!inner(email)", { count: "exact", head: true })
+      .select("id, players!inner(phone)", { count: "exact", head: true })
       .eq("status", "pending")
       .gte("created_at", since)
-      .eq("players.email", email);
+      .eq("players.phone", phone);
     if ((count ?? 0) >= 5) return json({ error: "demasiados_intentos" }, 429);
 
     const { data: priceRow } = await sb.from("settings").select("value").eq("key", "spin_price").single();
     const price = Number(priceRow?.value ?? 10000);
 
     const now = new Date().toISOString();
-    const { data: player, error: pErr } = await sb
-      .from("players")
-      .upsert({ full_name, phone, email, adult_confirmed_at: now, terms_accepted_at: now }, { onConflict: "email" })
-      .select("id")
-      .single();
-    if (pErr || !player) throw pErr ?? new Error("player");
+    // Jugador existente (mismo teléfono y nombre) o nuevo. Sin email.
+    let player: { id: string } | null = null;
+    const { data: found } = await sb
+      .from("players").select("id").eq("phone", phone).ilike("full_name", full_name).limit(1).maybeSingle();
+    if (found) {
+      player = found;
+      await sb.from("players").update({ adult_confirmed_at: now, terms_accepted_at: now }).eq("id", found.id);
+    } else {
+      const { data: created, error: pErr } = await sb
+        .from("players")
+        .insert({ full_name, phone, adult_confirmed_at: now, terms_accepted_at: now })
+        .select("id").single();
+      if (pErr || !created) throw pErr ?? new Error("player");
+      player = created;
+    }
 
     const reference = crypto.randomUUID().replaceAll("-", "").slice(0, 20).toUpperCase();
     const { error: payErr } = await sb.from("payments").insert({ reference, player_id: player.id, amount: price });
@@ -131,14 +138,7 @@ Deno.serve(async (req) => {
       throw e;
     }
 
-    // Sin credenciales de Galiopay: transferencia manual solo si hay alias configurado
-    const alias = Deno.env.get("TRANSFER_ALIAS");
-    if (alias) {
-      return json({
-        reference, price,
-        transfer: { alias, cbu: Deno.env.get("TRANSFER_CBU") ?? "", holder: Deno.env.get("TRANSFER_HOLDER") ?? "" },
-      });
-    }
+    // Sin credenciales de Galiopay no se puede cobrar (el cobro es solo por Galiopay)
     await sb.from("payments").update({ status: "rejected" }).eq("reference", reference);
     return json({ error: "galiopay_no_configurado" }, 503);
   } catch (e) {
