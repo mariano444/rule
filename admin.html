@@ -135,8 +135,8 @@ async function load() {
   tot.dataset.tot = '1'; $('#tPz').parentElement.after(tot);
 
   // Pagos pendientes
-  table($('#tPay'), ['Fecha', 'Nombre', 'Teléfono', 'Email', 'Monto', 'Referencia', ''],
-    data.pending_payments.map(p => [when(p.created_at), p.full_name, p.phone, p.email, fmt(p.amount), p.reference,
+  table($('#tPay'), ['Fecha', 'Nombre', 'Teléfono', 'Monto', 'Referencia', ''],
+    data.pending_payments.map(p => [when(p.created_at), p.full_name, p.phone, fmt(p.amount), p.reference,
       btn('Acreditar', async b => {
         if (!confirm('¿Confirmás que recibiste la transferencia de ' + p.full_name + ' (ref. ' + p.reference + ')?')) return;
         b.disabled = true;
@@ -152,7 +152,7 @@ async function load() {
         p.claimed ? span('Reclamado ✓', 'good') : span('SIN RECLAMAR', 'bad'),
         name, p.claimed ? thumb(p.claim_photo) : '—',
         p.claim_comment ? span('“' + p.claim_comment + '”', 'cm') : '—',
-        `${p.full_name} · ${p.phone} · ${p.email}`,
+        `${p.full_name} · ${p.phone}`,
         acts(
           p.claimed ? btn('Marcar entregado', async b => {
             const notes = prompt('Nota de entrega (opcional): comprobante, fecha, DNI verificado…') ?? '';
