@@ -848,7 +848,8 @@ function initials(w) {
 }
 async function loadShowcase() {
   if (DEMO) { renderWinners(DEMO_WINNERS); return; }
-  const { data } = await sb.rpc('get_winners');
+  const { data, error } = await sb.rpc('get_winners');
+  if (error) console.warn('get_winners:', error.message);
   renderWinners(data);
 }
 
