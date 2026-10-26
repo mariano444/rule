@@ -111,6 +111,10 @@ async function load() {
   setMsg('Datos actualizados ' + new Date().toLocaleTimeString('es-AR'));
   $('#app').hidden = false;
 
+  if (!data || !Array.isArray(data.prizes)) {
+    setMsg('La base de datos está desactualizada: ejecutá supabase/migracion_reclamos.sql en el SQL Editor de Supabase y recargá.', true);
+    $('#app').hidden = true; return;
+  }
   const s = data.stats, rtp = Number(s.rtp_theoretical || 0);
   $('#stats').textContent = '';
   [['Ingresos cobrados', fmt(s.revenue)], ['Tiros realizados', s.spins], ['Premios (pagados + adeudados)', fmt(s.owed_or_paid_out)], ['Retorno teórico (RTP)', (rtp * 100).toFixed(1) + ' %']]
