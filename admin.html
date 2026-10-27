@@ -52,6 +52,10 @@ th{color:var(--muted);font-weight:600;white-space:nowrap}
   <div class="stats" id="stats"></div>
   <div class="warn" id="rtpWarn" hidden></div>
 
+  <h2>Packs de fichas y retorno</h2>
+  <p class="hint">Retorno (RTP) = premio esperado por ficha ÷ lo que cobrás por ficha. Si pasa de 100 % el sistema paga más de lo que cobra. Cambiar precios: <code>update packs set price = 12000 where id = 'x3';</code> · Ajustar premios: ejecutá <code>ajustar_probabilidades.sql</code> o editá <code>prizes.weight</code>.</p>
+  <div class="scroll"><table id="tPacks"></table></div>
+
   <h2>Premios y probabilidades <span style="color:var(--muted);font-weight:400;font-size:13px">(solo se ven acá)</span></h2>
   <p class="hint">La probabilidad de cada premio es su peso dividido por la suma de pesos activos. Para cambiarla: <code>update prizes set weight = 10 where label = '$1.000.000';</code> · Foto del premio: <code>update prizes set image_url = 'https://…' where label = 'AUTO 0 KM';</code></p>
   <div class="scroll"><table id="tPz"></table></div>
@@ -117,11 +121,19 @@ async function load() {
   }
   const s = data.stats, rtp = Number(s.rtp_theoretical || 0);
   $('#stats').textContent = '';
-  [['Ingresos cobrados', fmt(s.revenue)], ['Tiros realizados', s.spins], ['Premios (pagados + adeudados)', fmt(s.owed_or_paid_out)], ['Retorno teórico (RTP)', (rtp * 100).toFixed(1) + ' %']]
+  [['Ingresos cobrados', fmt(s.revenue)], ['Tiros realizados', s.spins], ['Premios (pagados + adeudados)', fmt(s.owed_or_paid_out)], ['Retorno del peor pack (RTP)', (rtp * 100).toFixed(1) + ' %'], ['Premio esperado por ficha', fmt(s.expected_prize_per_ficha || 0)]]
     .forEach(([l, v]) => { const d = document.createElement('div'); d.className = 'stat'; const sm = document.createElement('small'); sm.textContent = l; const b = document.createElement('b'); b.textContent = v; d.append(sm, b); $('#stats').append(d); });
   const w = $('#rtpWarn');
-  if (rtp >= 1) { w.hidden = false; w.textContent = 'Atención: con estos pesos el retorno teórico es ≥ 100 %. A largo plazo el sistema paga más de lo que cobra. Ajustá la tabla prizes.'; }
+  if (rtp >= 1) { w.hidden = false; w.textContent = 'ATENCIÓN: con estos pesos y precios, al menos un pack devuelve ≥ 100 % de lo que cobra. A la larga el sistema paga más de lo que ingresa. Ejecutá ajustar_probabilidades.sql o cambiá los pesos de prizes.'; }
   else w.hidden = true;
+
+  // Packs y retorno
+  table($('#tPacks'), ['Pack', 'Fichas', 'Precio', 'Precio por ficha', 'Retorno (RTP)', 'Estado'],
+    (data.packs || []).map(k => {
+      const r = Number(k.rtp || 0), bad = r >= 1;
+      return [k.label, k.qty, fmt(k.price), fmt(Math.round(k.price_per_ficha)),
+        span((r * 100).toFixed(1) + ' %' + (bad ? '  ⚠ pierde plata' : ''), bad ? 'bad' : 'good'), k.active ? 'Activo' : 'Inactivo'];
+    }));
 
   // Premios y probabilidades
   const kinds = { cash: 'Dinero', item: 'Bien', free_spin: 'Tiro extra', none: 'Sin premio' };
@@ -139,8 +151,8 @@ async function load() {
   tot.dataset.tot = '1'; $('#tPz').parentElement.after(tot);
 
   // Pagos pendientes
-  table($('#tPay'), ['Fecha', 'Nombre', 'Teléfono', 'Monto', 'Referencia', ''],
-    data.pending_payments.map(p => [when(p.created_at), p.full_name, p.phone, fmt(p.amount), p.reference,
+  table($('#tPay'), ['Fecha', 'Nombre', 'Teléfono', 'Fichas', 'Monto', 'Referencia', ''],
+    data.pending_payments.map(p => [when(p.created_at), p.full_name, p.phone, p.qty || 1, fmt(p.amount), p.reference,
       btn('Acreditar', async b => {
         if (!confirm('¿Confirmás que recibiste la transferencia de ' + p.full_name + ' (ref. ' + p.reference + ')?')) return;
         b.disabled = true;
