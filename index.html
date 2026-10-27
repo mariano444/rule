@@ -223,14 +223,116 @@ footer strong{color:var(--text)}
 #confetti{position:fixed;inset:0;pointer-events:none;z-index:70}
 @media(prefers-reduced-motion:reduce){*{animation:none!important}}
 </style>
+
+<style id="v2">
+/* ===== Rediseño v2: aurora, vidrio, packs, secciones ===== */
+.aurora{position:fixed;inset:0;z-index:-1;overflow:hidden;pointer-events:none}
+.aurora i{position:absolute;border-radius:50%;filter:blur(90px);opacity:.5;animation:aur 20s ease-in-out infinite alternate;will-change:transform}
+.aurora i:nth-child(1){width:46vw;height:46vw;left:-10vw;top:-12vw;background:#7a0f2e}
+.aurora i:nth-child(2){width:40vw;height:40vw;right:-8vw;top:24vh;background:#5b3a00;animation-delay:-7s}
+.aurora i:nth-child(3){width:38vw;height:38vw;left:28vw;bottom:-20vw;background:#34095a;animation-delay:-12s}
+@keyframes aur{to{transform:translate3d(6vw,5vh,0) scale(1.14)}}
+@media(max-width:700px){.aurora i{filter:blur(60px)}}
+.reveal{transition:opacity .8s ease,transform .8s cubic-bezier(.2,.8,.2,1)}
+.js .reveal:not(.in){opacity:0;transform:translateY(28px)}
+
+/* header */
+header{background:rgba(10,5,8,.62);backdrop-filter:blur(16px) saturate(1.4);border-bottom:1px solid rgba(245,197,66,.18)}
+.logo{display:flex;align-items:center;gap:8px}
+.logo svg{width:28px;height:28px;flex:none;filter:drop-shadow(0 0 8px rgba(245,197,66,.6))}
+.nav{display:none;gap:4px}
+@media(min-width:900px){.nav{display:flex}}
+.nav a{color:var(--text);text-decoration:none;font-size:13px;font-weight:600;padding:8px 14px;border-radius:999px;opacity:.8;transition:.2s}
+.nav a:hover{background:rgba(245,197,66,.14);opacity:1;color:var(--gold-2)}
+
+/* hero */
+.hero{padding:42px 0 6px}
+.badge-live{display:inline-flex;align-items:center;gap:8px;padding:7px 16px;border-radius:999px;font-size:12px;font-weight:700;letter-spacing:1.2px;
+  background:rgba(46,204,113,.1);border:1px solid rgba(46,204,113,.45);color:#9af0bd;margin-bottom:16px}
+.badge-live .dot{width:8px;height:8px;border-radius:50%;background:#2ecc71;box-shadow:0 0 0 0 rgba(46,204,113,.7);animation:ping 1.8s infinite}
+@keyframes ping{70%{box-shadow:0 0 0 10px rgba(46,204,113,0)}100%{box-shadow:0 0 0 0 rgba(46,204,113,0)}}
+.hero h1{background:linear-gradient(100deg,#fff3c4 0%,#f5c542 30%,#fff3c4 50%,#f5c542 70%,#b8860b 100%);background-size:220% 100%;-webkit-background-clip:text;background-clip:text;color:transparent;animation:shimmer 6s linear infinite}
+@keyframes shimmer{to{background-position:-220% 0}}
+.hero h1 em{font-style:normal;font-size:.5em;vertical-align:middle;margin:0 .15em;background:linear-gradient(180deg,#ff6b78,#c1121f);-webkit-background-clip:text;background-clip:text;color:transparent}
+.hero .lead{max-width:640px;margin:12px auto 0;color:#d8c9a8;font-size:clamp(15px,2.5vw,19px);line-height:1.55}
+.hero .lead b{color:var(--gold-2)}
+.hero .from{margin-top:6px;color:var(--gold-2);font-weight:700;font-size:15px;min-height:22px}
+.jackpot{margin-top:16px;padding:12px 26px;backdrop-filter:blur(6px);animation:none;box-shadow:0 0 40px rgba(245,197,66,.25),inset 0 0 22px rgba(245,197,66,.1)}
+.jackpot span{font-size:.62em;letter-spacing:2px;opacity:.85}
+.trust{list-style:none;display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-top:20px}
+.trust li{font-size:12.5px;font-weight:600;padding:8px 14px;border-radius:999px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);backdrop-filter:blur(6px)}
+
+/* panel de compra */
+.panel{position:relative;border:0;border-radius:28px;padding:28px;background:linear-gradient(165deg,rgba(40,18,32,.82),rgba(14,6,10,.9));backdrop-filter:blur(18px);box-shadow:0 30px 80px rgba(0,0,0,.55),0 0 60px rgba(245,197,66,.08)}
+.panel::before{content:"";position:absolute;inset:0;border-radius:inherit;padding:1.5px;pointer-events:none;
+  background:conic-gradient(from var(--ang),rgba(255,243,196,.9),rgba(245,197,66,.2),rgba(193,18,31,.7),rgba(245,197,66,.2),rgba(255,243,196,.9));animation:angspin 7s linear infinite;
+  -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude}
+.panel .ptitle{margin-bottom:14px}
+.eyebrow{display:inline-block;font-size:11px;font-weight:800;letter-spacing:2.2px;color:var(--gold);padding:4px 12px;border-radius:999px;background:rgba(245,197,66,.1);border:1px solid rgba(245,197,66,.3);margin-bottom:8px}
+.panel h2{font-size:38px;line-height:1}
+.packs{display:grid;gap:14px;margin:16px 0 16px}
+.pack{position:relative;display:flex;align-items:center;gap:14px;padding:16px 16px;border-radius:18px;border:1.5px solid rgba(255,255,255,.14);background:rgba(255,255,255,.035);cursor:pointer;transition:transform .2s,border-color .2s,box-shadow .2s,background .2s}
+.pack:hover{transform:translateY(-2px);border-color:rgba(245,197,66,.55)}
+.pack input{position:absolute;opacity:0;pointer-events:none}
+.pack .dot{width:24px;height:24px;border-radius:50%;border:2px solid rgba(255,255,255,.3);flex:none;display:flex;align-items:center;justify-content:center;transition:.2s}
+.pack.sel{border-color:var(--gold);background:linear-gradient(135deg,rgba(245,197,66,.18),rgba(193,18,31,.14));box-shadow:0 0 0 3px rgba(245,197,66,.16),0 14px 34px rgba(245,197,66,.16)}
+.pack.sel .dot{border-color:var(--gold);background:var(--gold)}
+.pack.sel .dot::after{content:"";width:9px;height:5px;border-left:2.5px solid #3a0a12;border-bottom:2.5px solid #3a0a12;transform:rotate(-45deg) translate(1px,-1px)}
+.pack:focus-within{outline:2px solid var(--gold);outline-offset:3px}
+.pack .pmid{flex:1;display:flex;flex-direction:column;gap:2px;min-width:0}
+.pack .pmid b{font-family:'Bebas Neue',sans-serif;font-size:26px;letter-spacing:1.2px;line-height:1}
+.pack .pmid small{color:var(--muted);font-size:12.5px}
+.pack .pprice{font-family:'Bebas Neue',sans-serif;font-size:34px;color:var(--gold-2);line-height:1;text-shadow:0 0 18px rgba(245,197,66,.35)}
+.pack .rib{position:absolute;top:-11px;left:16px;font-size:10.5px;font-weight:800;letter-spacing:1.2px;padding:3px 11px;border-radius:999px;color:#3a0a12;background:linear-gradient(180deg,#ffe08a,var(--gold));box-shadow:0 4px 12px rgba(0,0,0,.4)}
+.pack .save{align-self:flex-start;margin-top:5px;line-height:1.3;border-radius:12px !important;font-size:10.5px;font-weight:800;letter-spacing:.8px;padding:3px 11px;border-radius:999px;color:#04210f;background:linear-gradient(180deg,#7dffb0,#2ecc71);box-shadow:0 4px 12px rgba(0,0,0,.4);animation:badgepulse 2.2s ease-in-out infinite}
+.field input{border-radius:14px;padding:13px 14px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.14);transition:border-color .2s,box-shadow .2s}
+.field input:focus{outline:none;border-color:var(--gold);box-shadow:0 0 0 3px rgba(245,197,66,.2)}
+.total{display:flex;justify-content:space-between;align-items:baseline;padding:12px 4px 10px;margin-top:6px;border-top:1px dashed rgba(255,255,255,.18)}
+.total span{color:var(--muted);font-size:14px}
+.total b{font-family:'Bebas Neue',sans-serif;font-size:36px;color:var(--gold-2);letter-spacing:1px}
+.btn{position:relative;overflow:hidden;border-radius:16px}
+.btn::after{content:"";position:absolute;top:0;bottom:0;left:0;width:40%;background:linear-gradient(90deg,transparent,rgba(255,255,255,.55),transparent);transform:translateX(-160%) skewX(-20deg);animation:shine 4.5s ease-in-out infinite;pointer-events:none}
+.btn.ghost::after{display:none}
+#buyBtn{padding:17px 18px;font-size:17px}
+.secure{display:block;margin-top:12px;color:var(--muted);font-size:12.5px;text-align:center;line-height:1.5}
+.secure b{color:var(--text)}
+.have{border-radius:18px}
+
+/* secciones */
+section.block{padding:44px 0}
+section.block h3{font-size:clamp(38px,6vw,58px);line-height:1;background:linear-gradient(180deg,#fff3c4,#f5c542 70%,#b8860b);-webkit-background-clip:text;background-clip:text;color:transparent}
+section.block .sub{font-size:15px;margin:8px 0 22px}
+.how{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:20px}
+@media(max-width:760px){.how{grid-template-columns:1fr}}
+.how .st{position:relative;padding:24px 20px;border-radius:22px;background:linear-gradient(160deg,rgba(255,255,255,.08),rgba(255,255,255,.02));border:1px solid rgba(255,255,255,.12);backdrop-filter:blur(10px);transition:transform .25s,border-color .25s}
+.how .st:hover{transform:translateY(-5px);border-color:rgba(245,197,66,.5)}
+.how .n{width:50px;height:50px;border-radius:16px;display:flex;align-items:center;justify-content:center;font-family:'Bebas Neue',sans-serif;font-size:30px;color:#3a0a12;background:linear-gradient(180deg,#ffe08a,var(--gold));margin-bottom:14px;box-shadow:0 10px 26px rgba(245,197,66,.3)}
+.how h4{font-size:18px;margin-bottom:6px}
+.how p{color:var(--muted);font-size:14px;line-height:1.6}
+@media(min-width:761px){.how .st:not(:last-child)::after{content:"›";position:absolute;right:-14px;top:50%;transform:translateY(-50%);font-size:34px;color:var(--gold);z-index:2;text-shadow:0 0 12px rgba(245,197,66,.6)}}
+details{border-radius:18px;padding:0;overflow:hidden;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.12);transition:border-color .2s}
+details[open]{border-color:rgba(245,197,66,.45)}
+details summary{list-style:none;padding:18px 20px;display:flex;justify-content:space-between;align-items:center;gap:12px;font-size:15.5px}
+details summary::-webkit-details-marker{display:none}
+details summary::after{content:"+";font-size:26px;line-height:1;color:var(--gold);transition:transform .25s;flex:none}
+details[open] summary::after{transform:rotate(45deg)}
+details p{padding:0 20px 18px;margin:0}
+footer{background:linear-gradient(180deg,transparent,rgba(0,0,0,.5))}
+.pcard,.wcard{backdrop-filter:blur(4px)}
+.pcard.in:hover{transition:transform .15s ease-out,box-shadow .25s}
+.sticky-cta .btn{font-size:15px}
+@media(max-width:560px){.logo{font-size:22px;white-space:nowrap}.logo svg{width:24px;height:24px}.chip{white-space:nowrap;padding:5px 10px;font-size:12px}.panel{padding:22px 16px}.pack .pmid b{font-size:22px}.pack .pprice{font-size:28px}}
+</style>
 </head>
 <body>
+<div class="aurora" aria-hidden="true"><i></i><i></i><i></i></div>
 
 <div id="demoBar" class="demo" hidden>MODO DEMO · sin cobros reales · configurá Supabase en el código para producción</div>
 
 <header>
   <div class="wrap">
-    <div class="logo">MEGA RULETA</div>
+    <div class="logo"><svg viewBox="0 0 32 32" aria-hidden="true"><defs><linearGradient id="lg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fff3c4"/><stop offset=".5" stop-color="#f5c542"/><stop offset="1" stop-color="#b8860b"/></linearGradient></defs><circle cx="16" cy="16" r="14" fill="none" stroke="url(#lg)" stroke-width="2.4"/><circle cx="16" cy="16" r="3.2" fill="url(#lg)"/><g stroke="url(#lg)" stroke-width="2" stroke-linecap="round"><path d="M16 4v6M16 22v6M4 16h6M22 16h6M7.5 7.5l4.2 4.2M20.3 20.3l4.2 4.2M24.5 7.5l-4.2 4.2M11.7 20.3l-4.2 4.2"/></g></svg>MEGA RULETA</div>
+    <nav class="nav" aria-label="Secciones"><a href="#premios">Premios</a><a href="#como">Cómo funciona</a><a href="#ganadores">Ganadores</a><a href="#faq">Preguntas</a></nav>
     <div class="hdr-right">
       <div class="chip">🎟️ Fichas: <b id="tokCount">0</b></div>
       <button class="icon-btn" id="soundBtn" aria-label="Activar o silenciar sonido" title="Sonido">🔊</button>
@@ -240,9 +342,16 @@ footer strong{color:var(--text)}
 
 <main class="wrap">
   <div class="hero">
-    <h1>GIRÁ Y GANÁ</h1>
-    <p>Diez premios en juego. Un solo tiro puede cambiarte el día.</p>
-    <div class="jackpot">PREMIO MAYOR <b>$20.000.000</b></div>
+    <div class="badge-live"><span class="dot"></span>SORTEO ABIERTO · GIRÁ CUANDO QUIERAS</div>
+    <h1>GIRÁ <em>Y</em> GANÁ</h1>
+    <p class="lead">Diez premios en juego, incluido <b>un auto</b>. Un solo giro puede cambiarte el día.</p>
+    <p class="from" id="fromTxt"></p>
+    <div class="jackpot"><span>PREMIO MAYOR</span> <b id="jackAmt">$20.000.000</b></div>
+    <ul class="trust">
+      <li>🔒 Pago seguro con Galiopay</li>
+      <li>⚡ Fichas al instante</li>
+      <li>🎯 Sorteo en servidor, sin trampas</li>
+    </ul>
   </div>
 
   <div class="stage">
@@ -260,8 +369,7 @@ footer strong{color:var(--text)}
 
     <aside class="panel" id="buyPanel">
       <div class="claimbar" id="claimBar"><span id="claimBarTxt"></span><button class="btn" id="claimBarBtn" type="button">🏆 RECLAMAR AHORA</button></div>
-      <h2>TU FICHA</h2>
-      <div class="price"><b id="priceTxt">$10.000</b><span>por tiro · pago por transferencia</span></div>
+      <div class="ptitle"><span class="eyebrow">COMPRÁ TUS FICHAS</span><h2>ELEGÍ TU PACK</h2></div>
 
       <div class="have" id="haveBox">
         <b id="haveTxt"></b>
@@ -269,27 +377,34 @@ footer strong{color:var(--text)}
       </div>
 
       <form id="buyForm" novalidate>
+        <div class="packs" id="packs" role="radiogroup" aria-label="Elegí tu pack de fichas"></div>
         <div class="field"><label for="fName">Nombre y apellido</label><input id="fName" autocomplete="name" maxlength="80" required></div>
         <div class="field"><label for="fPhone">WhatsApp / teléfono (para coordinar tu premio)</label><input id="fPhone" type="tel" autocomplete="tel" maxlength="20" required></div>
         <label class="check"><input type="checkbox" id="fAdult"> Declaro ser mayor de 18 años.</label>
         <label class="check"><input type="checkbox" id="fTerms"> Acepto las bases y condiciones y que, si gano un premio mayor, se muestre mi nombre de pila e inicial en la lista de ganadores.</label>
-        <button class="btn" type="submit" id="buyBtn">COMPRAR FICHA · <span class="pp">$10.000</span></button>
+        <div class="total"><span>Total a pagar</span><b id="totalTxt">$0</b></div>
+        <button class="btn" type="submit" id="buyBtn">COMPRAR FICHAS</button>
+        <div class="secure">🔒 Transferencia segura con <b>Galiopay</b> · tus fichas se acreditan solas</div>
         <div class="err" id="buyErr" role="alert"></div>
       </form>
-
-      <div class="steps">
-        <div><b>1</b>Comprá tu ficha</div>
-        <div><b>2</b>Transferí y se acredita sola</div>
-        <div><b>3</b>Girá y mirá tu premio</div>
-      </div>
     </aside>
   </div>
 
-  <section class="block" id="winnersBlock">
+  <section class="block reveal" id="winnersBlock">
     <div class="ticker" id="ticker"><div class="ticker-track" id="tickerTrack"></div></div>
   </section>
 
-  <section class="block" id="autoShow" hidden>
+  <section class="block reveal" id="como">
+    <span class="eyebrow">CÓMO FUNCIONA</span>
+    <h3>TRES PASOS Y A GIRAR</h3>
+    <div class="how">
+      <div class="st"><div class="n">1</div><h4>Elegí tu pack</h4><p>1 ficha o 3 fichas: cada ficha es un giro. El pack de 3 te sale más barato por giro.</p></div>
+      <div class="st"><div class="n">2</div><h4>Transferí con Galiopay</h4><p>Te llevamos al pago seguro. Apenas se confirma la transferencia, tus fichas se acreditan solas.</p></div>
+      <div class="st"><div class="n">3</div><h4>Girá y mirá tu premio</h4><p>El sorteo se decide en el servidor. Si ganás, reclamás tu premio con tus datos y una foto.</p></div>
+    </div>
+  </section>
+
+  <section class="block reveal" id="autoShow" hidden>
     <div class="carshow">
       <div class="carframe">
         <img id="carImg" alt="Auto en juego" decoding="async">
@@ -301,7 +416,7 @@ footer strong{color:var(--text)}
       </div>
       <div class="cartxt">
         <h3>ESTE AUTO<br>PUEDE SER TUYO</h3>
-        <p>Con un solo giro de <b id="carPrice">$10.000</b> participás por <b id="carName">el auto</b>. Si sale, es tuyo.</p>
+        <p>Con giros desde <b id="carPrice">$0</b> cada uno participás por <b id="carName">el auto</b>. Si sale, es tuyo.</p>
         <ul class="pts">
           <li>Sorteo en el servidor, sin trampas ni manipulación</li>
           <li>Pago por transferencia con Galiopay, se acredita solo</li>
@@ -312,23 +427,27 @@ footer strong{color:var(--text)}
     </div>
   </section>
 
-  <section class="block" id="premios">
+  <section class="block reveal" id="premios">
+    <span class="eyebrow">PREMIOS</span>
     <h3>DIEZ PREMIOS EN JUEGO</h3>
     <p class="sub">Cada giro puede cambiarte el día. Mirá todo lo que podés ganar:</p>
     <div class="pgrid" id="prizeGrid"></div>
     <div class="pcta"><button class="btn" id="ctaBuy" type="button">🎰 QUIERO GIRAR AHORA</button></div>
   </section>
 
-  <section class="block" id="ganadores" hidden>
+  <section class="block reveal" id="ganadores" hidden>
+    <span class="eyebrow">GANADORES</span>
     <h3>NUESTROS GANADORES</h3>
     <p class="sub">Personas que ya giraron la ruleta y se llevaron su premio.</p>
     <div class="wgrid" id="wGrid"></div>
   </section>
 
-  <section class="block">
+  <section class="block reveal" id="faq">
+    <span class="eyebrow">AYUDA</span>
     <h3>PREGUNTAS FRECUENTES</h3>
     <details><summary>¿Cómo se decide el premio?</summary><p>Al girar, el servidor sortea el resultado con un generador aleatorio criptográfico y recién después la rueda se anima hasta ese gajo. La animación es solo visual: no se puede influir en el resultado.</p></details>
-    <details><summary>¿Cuándo se acredita mi ficha?</summary><p>Apenas se confirma tu transferencia. La pantalla se actualiza sola; si cerrás la página, tu ficha queda guardada en este dispositivo.</p></details>
+    <details><summary>¿Cuál es la diferencia entre los packs?</summary><p>Cada ficha es un giro de la ruleta. El pack de 3 fichas tiene un precio menor por giro que comprar fichas de a una.</p></details>
+    <details><summary>¿Cuándo se acreditan mis fichas?</summary><p>Apenas se confirma tu transferencia. La pantalla se actualiza sola; si cerrás la página, tus fichas quedan guardadas en este dispositivo.</p></details>
     <details><summary>¿Cómo cobro mi premio?</summary><p>Después de ganar tocá “Reclamar mi premio” y completá tu nombre, apellido y una foto de perfil. Validamos tus datos y coordinamos el pago o la entrega por teléfono o WhatsApp.</p></details>
     <details><summary>¿Qué pasa con “Otro tiro”?</summary><p>Se acredita una ficha gratis en tu cuenta al instante y podés girar de nuevo.</p></details>
   </section>
@@ -385,7 +504,7 @@ footer strong{color:var(--text)}
   </div>
 </div>
 
-<div class="sticky-cta" id="stickyCta"><button class="btn" id="stickyBtn" type="button">🎰 COMPRAR FICHA · <span class="pp">$10.000</span></button></div>
+<div class="sticky-cta" id="stickyCta"><button class="btn" id="stickyBtn" type="button">🎰 COMPRAR FICHAS</button></div>
 
 <div id="toast" role="status" aria-live="polite"></div>
 <canvas id="confetti"></canvas>
@@ -399,7 +518,6 @@ footer strong{color:var(--text)}
 const CONFIG = {
   SUPABASE_URL: 'https://wvfkrxirkobqblpwmhbr.supabase.co',
   SUPABASE_ANON_KEY: 'sb_publishable_shyl_K_oTcylWmrb3w7o8g_UAnBnWcH',   // clave publicable (segura para el navegador)
-  PRICE: 10000,            // solo para mostrar; el precio real lo fija la base (settings.spin_price)
   LICENSE_TEXT: 'Operador autorizado — N.º de licencia/habilitación: COMPLETAR ANTES DE PUBLICAR'
 };
 const DEMO = !CONFIG.SUPABASE_URL || !CONFIG.SUPABASE_ANON_KEY;
@@ -412,7 +530,7 @@ const safeImg = u => (typeof u === 'string' && /^(https:\/\/|data:image\/(jpeg|p
 const prizeImg = p => safeImg(p && p.image_url) || (p && p.kind === 'item' ? window.CAR_IMG : null);
 const TAU = Math.PI * 2;
 const mod = (a, n) => ((a % n) + n) % n;
-const fmt = n => new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'ARS', maximumFractionDigits: 0 }).format(n);
+const fmt = n => new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'ARS', maximumFractionDigits: 0 }).format(n).replace(/\s/g, '');
 const store = {
   get(k, d) { try { const v = JSON.parse(localStorage.getItem(k)); return v ?? d; } catch { return d; } },
   set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch {} },
@@ -444,6 +562,12 @@ let spinning = false;
 let rot = -Math.PI / 2;                    // rotación actual de la rueda
 let spinAnim = null;
 let soundOn = store.get('mr_sound', true);
+const DEMO_PACKS = [
+  { id: 'x1', label: '1 FICHA', qty: 1, price: 5000, badge: null },
+  { id: 'x3', label: '3 FICHAS', qty: 3, price: 10000, badge: 'MÁS CONVENIENTE' }
+];
+let packs = [], selPack = null;
+document.documentElement.classList.add('js');
 
 function saveTokens() { store.set('mr_tokens', tokens); renderTokens(); }
 
@@ -825,7 +949,7 @@ function renderTokens() {
   } else box.classList.remove('on');
   const hub = $('#hub');
   hub.textContent = tokens.length ? 'GIRAR' : 'FICHA';
-  $('#stickyBtn').innerHTML = tokens.length ? '🎰 GIRAR AHORA' : '🎰 COMPRAR FICHA · <span class="pp">' + fmt(CONFIG.PRICE) + '</span>';
+  paintBuy();
   hub.classList.toggle('ready', tokens.length > 0 && !spinning);
   hub.disabled = spinning; $('#spinBtn').disabled = spinning;
 }
@@ -853,7 +977,7 @@ function renderCarShow() {
   $('#carName').textContent = item.label;
   const top = Math.max(...prizes.filter(p => p.kind === 'cash').map(p => p.amount), 0);
   $('#carTop').textContent = top ? money(top) : '';
-  $('#carPrice').textContent = fmt(CONFIG.PRICE);
+  $('#carPrice').textContent = fmt(Math.round(minPerSpin()));
   sec.hidden = false;
 }
 function fitPrizes() {
@@ -947,6 +1071,68 @@ async function loadWinners() {
   $('#ticker').classList.add('on');
 }
 
+/* ====================== PACKS ====================== */
+const minPerSpin = () => packs.length ? Math.min(...packs.map(k => k.price / k.qty)) : 0;
+async function loadPacks() {
+  let list = null;
+  if (!DEMO) {
+    try { const { data, error } = await sb.rpc('get_packs'); if (error) console.warn('get_packs:', error.message); else if (Array.isArray(data) && data.length) list = data; } catch {}
+  }
+  packs = (list || DEMO_PACKS).map(k => ({ id: String(k.id), label: String(k.label), qty: Number(k.qty), price: Number(k.price), badge: k.badge || null }));
+  const keep = store.get('mr_pack', null);
+  selPack = packs.find(k => k.id === keep) || packs.slice().sort((a, b) => b.qty - a.qty)[0] || null;   // por defecto el pack más conveniente
+  renderPacks();
+}
+function renderPacks() {
+  const box = $('#packs'); box.textContent = '';
+  const one = packs.find(k => k.qty === 1), base = one ? one.price : (packs.length ? Math.min(...packs.map(k => k.price / k.qty)) : 0);
+  packs.forEach(k => {
+    const lab = document.createElement('label'); lab.className = 'pack' + (selPack && selPack.id === k.id ? ' sel' : '');
+    const inp = document.createElement('input'); inp.type = 'radio'; inp.name = 'pack'; inp.value = k.id; inp.checked = !!selPack && selPack.id === k.id;
+    inp.addEventListener('change', () => { selPack = k; store.set('mr_pack', k.id); renderPacks(); sfx.tick(4); });
+    const dot = document.createElement('span'); dot.className = 'dot';
+    const mid = document.createElement('span'); mid.className = 'pmid';
+    const t = document.createElement('b'); t.textContent = k.label;
+    const sub = document.createElement('small'); sub.textContent = k.qty > 1 ? `${fmt(Math.round(k.price / k.qty))} por ficha` : '1 giro de la ruleta';
+    mid.append(t, sub);
+    const pr = document.createElement('span'); pr.className = 'pprice'; pr.textContent = fmt(k.price);
+    lab.append(inp, dot, mid, pr);
+    if (k.badge) { const r = document.createElement('span'); r.className = 'rib'; r.textContent = k.badge; lab.append(r); }
+    const save = base * k.qty - k.price;
+    if (k.qty > 1 && save > 0) { const sv = document.createElement('span'); sv.className = 'save'; sv.textContent = `AHORRÁS ${fmt(save)} · ${Math.round(save / (base * k.qty) * 100)}% OFF`; mid.append(sv); }
+    box.append(lab);
+  });
+  paintBuy();
+}
+function paintBuy() {
+  const bb = $('#buyBtn'), tt = $('#totalTxt'), st = $('#stickyBtn');
+  if (selPack) { bb.textContent = `COMPRAR ${selPack.label} · ${fmt(selPack.price)}`; tt.textContent = fmt(selPack.price); }
+  else { bb.textContent = 'COMPRAR FICHAS'; tt.textContent = '$0'; }
+  st.textContent = tokens.length ? '🎰 GIRAR AHORA' : (selPack ? `🎰 COMPRAR ${selPack.label} · ${fmt(selPack.price)}` : '🎰 COMPRAR FICHAS');
+}
+function renderHero() {
+  const top = Math.max(...prizes.filter(p => p.kind === 'cash').map(p => p.amount), 0), el = $('#jackAmt');
+  if (top) { if (reduceMotion) el.textContent = money(top); else countUp(el, top); }
+  const mp = minPerSpin(); $('#fromTxt').textContent = mp ? `Girá desde ${fmt(Math.round(mp))} por tiro` : '';
+}
+function setupReveal() {
+  const els = document.querySelectorAll('.reveal');
+  if (!('IntersectionObserver' in window)) { els.forEach(e => e.classList.add('in')); return; }
+  const io = new IntersectionObserver(es => es.forEach(e => { if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); } }), { threshold: .1 });
+  els.forEach(e => io.observe(e));
+}
+if (matchMedia('(hover:hover) and (pointer:fine)').matches && !reduceMotion) {
+  let tilted = null;
+  document.addEventListener('pointermove', e => {
+    const el = e.target.closest ? e.target.closest('.pcard:not(.hero), .wcard, .carframe') : null;
+    if (tilted && tilted !== el) { tilted.style.transform = ''; tilted = null; }
+    if (!el || (el.classList.contains('pcard') && !el.classList.contains('in'))) return;
+    const r = el.getBoundingClientRect(), x = (e.clientX - r.left) / r.width - .5, y = (e.clientY - r.top) / r.height - .5;
+    el.style.transform = `perspective(800px) rotateX(${(-y * 7).toFixed(2)}deg) rotateY(${(x * 9).toFixed(2)}deg) translateY(-4px) scale(1.02)`;
+    tilted = el;
+  });
+}
+
 /* ====================== COMPRA ====================== */
 let pollTimer = null, pollUntil = 0;
 const openModal = id => $(id).classList.add('on');
@@ -958,7 +1144,7 @@ function showPayModal(info, returning = false) {
   const body = $('#payBody'); body.textContent = '';
   if (returning) {
     const p = document.createElement('p');
-    p.textContent = 'Si ya hiciste la transferencia, esperá unos segundos: tu ficha se acredita sola apenas Galiopay confirma el pago.';
+    p.textContent = 'Si ya hiciste la transferencia, esperá unos segundos: tus fichas se acreditan solas apenas Galiopay confirma el pago.';
     body.append(p);
     if (info.checkout_url) {
       const a = document.createElement('button'); a.className = 'btn ghost'; a.type = 'button'; a.textContent = 'Volver a Galiopay para pagar';
@@ -966,7 +1152,7 @@ function showPayModal(info, returning = false) {
       body.append(a);
     }
   } else if (info.checkout_url) {
-    const p = document.createElement('p'); p.textContent = 'Te llevamos a Galiopay para hacer la transferencia. Al terminar volvés acá y tu ficha se acredita sola.';
+    const p = document.createElement('p'); p.textContent = `Te llevamos a Galiopay para pagar ${info.qty > 1 ? info.qty + ' fichas' : '1 ficha'}. Al terminar volvés acá y se acreditan solas.`;
     const a = document.createElement('button'); a.className = 'btn'; a.type = 'button'; a.textContent = '💸 IR A PAGAR CON GALIOPAY';
     a.onclick = () => location.assign(info.checkout_url);
     body.append(p, a);
@@ -980,11 +1166,12 @@ function startPolling(ref) {
     if (Date.now() > pollUntil) { clearInterval(pollTimer); return; }
     try {
       const { data } = await sb.rpc('get_payment_status', { p_reference: ref });
-      if (data && data.status === 'paid' && data.token_code) {
+      if (data && data.status === 'paid') {
         clearInterval(pollTimer); store.del('mr_pending');
-        if (!tokens.includes(data.token_code)) tokens.push(data.token_code);
+        const codes = Array.isArray(data.token_codes) ? data.token_codes : [];
+        codes.forEach(c => { if (!tokens.includes(c)) tokens.push(c); });
         saveTokens(); closeModal('#payModal'); sfx.ok(); confetti(70);
-        toast('¡Ficha acreditada! Ya podés girar 🎰');
+        toast(codes.length > 1 ? `¡${codes.length} fichas acreditadas! Ya podés girar 🎰` : '¡Ficha acreditada! Ya podés girar 🎰');
         $('#wheelWrap').scrollIntoView({ behavior: 'smooth', block: 'center' });
       } else if (data && (data.status === 'rejected' || data.status === 'expired')) {
         clearInterval(pollTimer); store.del('mr_pending'); closeModal('#payModal'); toast('El pago fue rechazado o expiró.');
@@ -1008,14 +1195,16 @@ async function buy(e) {
   const err = validate(); $('#buyErr').textContent = err; if (err) return;
   const btn = $('#buyBtn'); btn.disabled = true;
   try {
+    if (!selPack) { $('#buyErr').textContent = 'Elegí un pack de fichas.'; return; }
     if (DEMO) {
-      tokens.push('demo-' + crypto.randomUUID()); saveTokens(); sfx.ok(); confetti(60);
-      toast('Demo: ficha acreditada sin cobro real.');
+      for (let i = 0; i < selPack.qty; i++) tokens.push('demo-' + crypto.randomUUID());
+      saveTokens(); sfx.ok(); confetti(60);
+      toast(`Demo: ${selPack.qty > 1 ? selPack.qty + ' fichas acreditadas' : 'ficha acreditada'} sin cobro real.`);
     } else {
       const r = await fetch(CONFIG.SUPABASE_URL + '/functions/v1/create-payment', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', apikey: CONFIG.SUPABASE_ANON_KEY },
-        body: JSON.stringify({ full_name: $('#fName').value, phone: $('#fPhone').value, adult: true, terms: true })
+        body: JSON.stringify({ full_name: $('#fName').value, phone: $('#fPhone').value, pack: selPack.id, adult: true, terms: true })
       });
       const info = await r.json();
       if (!r.ok) {
@@ -1023,6 +1212,7 @@ async function buy(e) {
           info.error === 'demasiados_intentos' ? 'Demasiados intentos. Probá en una hora.' :
           info.error === 'galiopay_error' ? `No pudimos conectar con Galiopay (código ${info.status}). Intentá de nuevo en unos minutos.` :
           info.error === 'galiopay_no_configurado' ? 'El cobro todavía no está configurado.' :
+          info.error === 'pack_invalido' ? 'Ese pack ya no está disponible. Recargá la página.' :
           'No pudimos iniciar el pago. Revisá tus datos e intentá de nuevo.';
         return;
       }
@@ -1184,13 +1374,12 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') { closeModal
 addEventListener('resize', () => { cv.width = innerWidth; cv.height = innerHeight; });
 
 $('#licenseTxt').textContent = CONFIG.LICENSE_TEXT;
-$('#priceTxt').textContent = fmt(CONFIG.PRICE);
-document.querySelectorAll('.pp').forEach(el => el.textContent = fmt(CONFIG.PRICE));
 if (DEMO) $('#demoBar').hidden = false;
 paintSound();
 
 (async () => {
-  await loadWheel();
+  await Promise.all([loadPacks(), loadWheel()]);
+  renderCarShow(); renderHero(); setupReveal();
   renderTokens(); renderClaims();
   requestAnimationFrame(frame);
   syncClaims();
