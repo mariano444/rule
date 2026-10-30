@@ -60,6 +60,17 @@ th{color:var(--muted);font-weight:600;white-space:nowrap}
   <p class="hint">La probabilidad de cada premio es su peso dividido por la suma de pesos activos. Para cambiarla: <code>update prizes set weight = 10 where label = '$1.000.000';</code> · Foto del premio: <code>update prizes set image_url = 'https://…' where label = 'AUTO 0 KM';</code></p>
   <div class="scroll"><table id="tPz"></table></div>
 
+  <h2>Raspadita: premios y probabilidades</h2>
+  <p class="hint">Igual que la ruleta: la probabilidad es el peso ÷ la suma de pesos activos. La fila con monto 0 es “sin premio”. Los cambios se aplican al instante en el servidor. Con la tarjeta conviene mantener al menos 4 montos distintos activos.</p>
+  <div class="stats" id="scStats"></div>
+  <div class="warn" id="scWarn" hidden></div>
+  <div class="scroll" style="margin-top:10px"><table id="tSc"></table></div>
+  <div class="row" style="margin-top:8px">
+    <input id="scNewAmt" type="number" min="0" placeholder="Monto nuevo" style="width:140px">
+    <input id="scNewW" type="number" min="0" placeholder="Peso" style="width:110px">
+    <button id="scAdd" class="sec">Agregar premio</button>
+  </div>
+
   <h2>Pagos pendientes de acreditar</h2>
   <p class="hint">Normalmente se acreditan solos por el webhook de la transferencia. Usá este botón solo si verificaste la transferencia y no se acreditó.</p>
   <div class="scroll"><table id="tPay"></table></div>
@@ -103,6 +114,7 @@ $('#lb').onclick = () => { $('#lb').hidden = true; };
 const ERR = {
   premio_sin_reclamar: 'Ese premio todavía no fue reclamado (faltan nombre, apellido y foto).',
   sin_autorizacion_publicar: 'El ganador no autorizó aparecer en la web.',
+  valor_invalido: 'Valor inválido (no negativos) o la raspadita quedaría sin premios activos.',
   no_autorizado: 'Clave incorrecta, o todavía no definiste admin_key_hash en la base.'
 };
 const errText = e => { const m = (e && e.message) || ''; const k = Object.keys(ERR).find(x => m.includes(x)); return k ? ERR[k] : 'Error: ' + m; };
@@ -186,6 +198,43 @@ async function load() {
           (p.claimed && !p.claim_publish) ? span('No autorizó publicar', 'cm') : null
         )];
     }));
+  await loadScratch(key, data.packs);
+}
+async function loadScratch(key, packs) {
+  const tbl = $('#tSc'), st = $('#scStats'), w = $('#scWarn');
+  const { data, error } = await sb.rpc('admin_scratch_overview', { p_key: key });
+  if (error || !data) {
+    tbl.textContent = ''; st.textContent = ''; w.hidden = false;
+    w.textContent = 'No se pudo leer la raspadita. ¿Ejecutaste scratch_setup.sql en Supabase? ' + ((error && error.message) || '');
+    return;
+  }
+  const act = (packs || []).filter(k => k.active).map(k => Number(k.price_per_ficha)).filter(x => x > 0);
+  const ppf = act.length ? Math.min(...act) : 0, exp = Number(data.expected_prize || 0), rtp = ppf ? exp / ppf : 0;
+  st.textContent = '';
+  [['Premio esperado por ficha', fmt(exp)], ['Retorno del peor pack (RTP)', ppf ? (rtp * 100).toFixed(1) + ' %' : '—'], ['Raspaditas jugadas', data.spins], ['Premios (pagados + adeudados)', fmt(data.paid_or_owed)], ['Suma de pesos activos', Number(data.total_weight).toLocaleString('es-AR')]]
+    .forEach(([l, v]) => { const d = document.createElement('div'); d.className = 'stat'; const sm = document.createElement('small'); sm.textContent = l; const b = document.createElement('b'); b.textContent = v; d.append(sm, b); st.append(d); });
+  w.hidden = !(ppf && rtp >= 1);
+  if (!w.hidden) w.textContent = 'ATENCIÓN: la raspadita devuelve ≥ 100 % de lo que cobra en el pack más barato por ficha. Bajá los pesos de los premios o subí el de “sin premio”.';
+  table(tbl, ['Monto', 'Peso', 'Probabilidad', '1 de cada…', 'Activo', ''], data.prizes.map(p => {
+    const amt = document.createElement('input'); amt.type = 'number'; amt.min = 0; amt.value = p.amount; amt.style.width = '130px';
+    const wt = document.createElement('input'); wt.type = 'number'; wt.min = 0; wt.value = p.weight; wt.style.width = '110px';
+    const ck = document.createElement('input'); ck.type = 'checkbox'; ck.checked = p.active;
+    const pr = Number(p.probability);
+    return [amt, wt, (pr * 100).toLocaleString('es-AR', { maximumFractionDigits: 4 }) + ' %' + (Number(p.amount) === 0 ? '  (sin premio)' : ''),
+      pr > 0 ? Math.round(1 / pr).toLocaleString('es-AR') + ' tarjetas' : '—', ck,
+      btn('Guardar', async b => {
+        b.disabled = true;
+        const { error } = await sb.rpc('admin_scratch_set', { p_key: key, p_id: p.id, p_amount: Number(amt.value), p_weight: Math.round(Number(wt.value)), p_active: ck.checked });
+        setMsg(error ? errText(error) : 'Raspadita actualizada.', !!error); load();
+      })];
+  }));
+  $('#scAdd').onclick = async () => {
+    const a = $('#scNewAmt').value, wv = $('#scNewW').value;
+    if (a === '' || wv === '') { setMsg('Completá monto y peso.', true); return; }
+    const { error } = await sb.rpc('admin_scratch_add', { p_key: key, p_amount: Number(a), p_weight: Math.round(Number(wv)) });
+    setMsg(error ? errText(error) : 'Premio agregado.', !!error);
+    if (!error) { $('#scNewAmt').value = ''; $('#scNewW').value = ''; } load();
+  };
 }
 $('#load').onclick = load;
 $('#key').addEventListener('keydown', e => { if (e.key === 'Enter') load(); });
