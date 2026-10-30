@@ -2250,7 +2250,6 @@ paintSound();
     else { showPayModal(pending, true); startPolling(pending.reference); }
   }
 })();
-})();
 
 /* ===== Casillero de prueba (demo): no usa fichas, no llama al servidor, no cuenta ===== */
 (function demoTry() {
@@ -2289,7 +2288,7 @@ paintSound();
     const q = last || p; cx.globalCompositeOperation = 'destination-out'; cx.lineWidth = 36; cx.lineCap = cx.lineJoin = 'round';
     cx.beginPath(); cx.moveTo(q.x, q.y); cx.lineTo(p.x, p.y); cx.stroke(); last = p; if (++n % 5 === 0) check();
   };
-  cv.addEventListener('pointerdown', e => { if (done) return; drawing = true; box.classList.add('touched'); cv.setPointerCapture(e.pointerId); last = null; erase(pos(e)); });
+  cv.addEventListener('pointerdown', e => { if (done) return; drawing = true; box.classList.add('touched'); try { cv.setPointerCapture(e.pointerId); } catch {} last = null; erase(pos(e)); });
   cv.addEventListener('pointermove', e => { if (drawing && !done) erase(pos(e)); });
   ['pointerup', 'pointercancel'].forEach(t => cv.addEventListener(t, () => { drawing = false; last = null; }));
   $('#dtAgain').addEventListener('click', reset);
@@ -2307,6 +2306,7 @@ paintSound();
     const c = e.target.closest && e.target.closest('.gc,.demo-try'); if (!c) return;
     const r = c.getBoundingClientRect(); c.style.setProperty('--mx', (e.clientX - r.left) + 'px'); c.style.setProperty('--my', (e.clientY - r.top) + 'px');
   }, { passive: true });
+})();
 })();
 </script>
 </body>
