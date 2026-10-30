@@ -306,6 +306,15 @@ section.block+section.block::before{content:"";position:absolute;top:0;left:8%;r
 @media(max-width:1180px){.nav a{padding:8px 9px;font-size:12px}}
 @media(max-width:400px){.hv-btns{grid-template-columns:1fr}.gflow{flex-direction:column;align-items:flex-start}.wrap{padding-left:14px;padding-right:14px}}
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important;scroll-behavior:auto!important}}
+
+#dmCv{position:absolute;inset:0;width:100%;height:100%;touch-action:none;cursor:crosshair;border-radius:14px;user-select:none;-webkit-user-select:none}
+.dm-card{max-width:400px;width:100%;justify-self:center}
+.gc .btn.ghost{margin-top:0}
+.wdemo{display:flex;flex-wrap:wrap;gap:10px 14px;align-items:center;margin-top:12px}
+.wdemo-t{font-size:13px;color:var(--muted)}
+.wdemo .dt-msg{flex:1 1 100%}
+.wdemo .btn{flex:0 0 auto}
+@media(max-width:760px){.dm-card{order:-1}}
 </style>
 
 <style id="v2">
@@ -653,6 +662,7 @@ img,video,canvas{max-width:100%}
         <h3>LA RUEDA</h3>
         <p>Girá y ganá hasta <b id="gRuedaTop">$20.000.000</b> o el auto. Usa <b>1 ficha</b> por giro.</p>
         <button class="btn" id="gWheel" type="button">🎰 GIRAR LA RUEDA</button>
+        <button class="btn ghost" id="gWheelDemo" type="button">✨ TIRO DE PRUEBA GRATIS</button>
       </article>
       <article class="gc">
         <div class="gi" aria-hidden="true">🎟️</div>
@@ -660,17 +670,18 @@ img,video,canvas{max-width:100%}
         <h3>LA RASPADITA</h3>
         <p>Raspá y, si encontrás 3 montos iguales, ganás hasta <b id="gScTop">$1.000.000</b>. Usa <b>1 ficha</b> por tarjeta.</p>
         <button class="btn" id="gScratch" type="button">🎟️ RASPAR</button>
+        <button class="btn ghost" id="gScDemo" type="button">✨ PROBAR GRATIS</button>
       </article>
     </div>
     <div class="demo-try" id="demoTry">
       <div class="dt-txt">
         <span class="gtag live">✨ PROBÁ GRATIS · DEMO</span>
-        <h3>RASPÁ UN CASILLERO DE PRUEBA</h3>
-        <p>Sin ficha y sin costo. Es solo una demostración: <b>no cuenta ni paga premios</b>. Raspá y mirá cómo se siente.</p>
-        <div class="dt-msg" id="dtMsg" aria-live="polite"></div>
-        <div class="dt-btns"><button class="btn" id="dtBuy" type="button" hidden>🎟️ QUIERO JUGAR DE VERDAD</button><button class="btn ghost" id="dtAgain" type="button" hidden>🔁 PROBAR OTRA VEZ</button></div>
+        <h3>PROBÁ LA RASPADITA REAL</h3>
+        <p>Es la <b>misma tarjeta</b> del juego de verdad. Raspá un casillero y mirá cómo se siente. Es solo una demostración: <b>no usa fichas, no cuenta ni paga premios</b>.</p>
+        <div class="dt-msg" id="dmMsg" aria-live="polite"></div>
+        <div class="dt-btns"><button class="btn" id="dmBuy" type="button" hidden>🎟️ DESCUBRIR EL RESTO</button><button class="btn ghost" id="dmAgain" type="button" hidden>🔁 PROBAR OTRA VEZ</button></div>
       </div>
-      <div class="dt-cell" id="dtBox"><div class="dt-prize" id="dtPrize">$0</div><canvas id="dtCv" aria-label="Casillero de prueba para raspar"></canvas><span class="dt-hand" aria-hidden="true">👆</span></div>
+      <div class="sccard dm-card"><div class="scgrid"><div class="sccells" id="dmCells"></div><canvas id="dmCv" aria-label="Tarjeta de prueba para raspar"></canvas></div></div>
     </div>
     <ol class="gflow" aria-label="Cómo empezar">
       <li><b>1</b> Comprá fichas</li><li><b>2</b> Elegí Rueda o Raspadita</li><li><b>3</b> Si ganás, reclamás tu premio</li>
@@ -681,7 +692,9 @@ img,video,canvas{max-width:100%}
     <span class="eyebrow">JUEGO 1 · LA RUEDA</span>
     <h3>GIRÁ LA RUEDA</h3>
     <p class="sub">Tocá <b>GIRAR</b> (usa 1 ficha). ¿No tenés fichas? Comprá un pack en el panel de al lado y se acreditan solas.</p>
-  </section>
+    <div class="wdemo"><button class="btn ghost" id="wDemo" type="button">✨ TIRO DE PRUEBA GRATIS</button><span class="wdemo-t">Sin ficha: la rueda gira de verdad, pero no cuenta ni paga.</span>
+      <div class="dt-msg" id="wDemoMsg" aria-live="polite"></div><button class="btn" id="wBuy" type="button" hidden>🎰 GIRAR DE VERDAD</button></div>
+    </section>
 
   <div class="stage">
     <div class="wheel-wrap" id="wheelWrap">
@@ -2253,48 +2266,81 @@ paintSound();
 
 /* ===== Casillero de prueba (demo): no usa fichas, no llama al servidor, no cuenta ===== */
 (function demoTry() {
-  const cv = $('#dtCv'), cx = cv.getContext('2d'), box = $('#dtBox');
-  let drawing = false, done = false, last = null, n = 0;
+  const cv = $('#dmCv'), cx = cv.getContext('2d', { willReadFrequently: true }), ce = $('#dmCells');
+  let rects = [], done = false, drawing = false, last = null, n = 0, cells = [];
+  const RR = (x, y, w, h, r) => { cx.beginPath(); cx.moveTo(x + r, y); cx.arcTo(x + w, y, x + w, y + h, r); cx.arcTo(x + w, y + h, x, y + h, r); cx.arcTo(x, y + h, x, y, r); cx.arcTo(x, y, x + w, y, r); cx.closePath(); };
   const cover = () => {
-    const d = Math.min(window.devicePixelRatio || 1, 2), w = box.clientWidth, h = box.clientHeight; if (!w) return;
-    cv.width = w * d; cv.height = h * d; cx.setTransform(d, 0, 0, d, 0, 0); cx.globalCompositeOperation = 'source-over';
-    const g = cx.createLinearGradient(0, 0, w, h);
-    g.addColorStop(0, '#d9dde3'); g.addColorStop(.35, '#f6f8fa'); g.addColorStop(.6, '#aeb4bd'); g.addColorStop(1, '#9aa1ab');
-    cx.fillStyle = g; cx.fillRect(0, 0, w, h);
-    cx.strokeStyle = 'rgba(255,255,255,.4)'; cx.lineWidth = 5;
-    for (let k = -h; k < w; k += 20) { cx.beginPath(); cx.moveTo(k, h); cx.lineTo(k + h, 0); cx.stroke(); }
-    cx.fillStyle = 'rgba(60,40,10,.6)'; cx.font = `400 ${Math.round(h * .3)}px 'Bebas Neue', Impact, sans-serif`; cx.textAlign = 'center'; cx.textBaseline = 'middle'; cx.fillText('RASPÁ', w / 2, h / 2);
+    const d = Math.min(window.devicePixelRatio || 1, 2), w = cv.clientWidth, h = cv.clientHeight; if (!w) return;
+    cv.width = Math.round(w * d); cv.height = Math.round(h * d); cx.setTransform(d, 0, 0, d, 0, 0); cx.globalCompositeOperation = 'source-over';
+    const o = cv.getBoundingClientRect();
+    rects = [...ce.children].map(el => { const r = el.getBoundingClientRect(); return { x: r.left - o.left, y: r.top - o.top, w: r.width, h: r.height }; });
+    rects.forEach(t => {
+      const g = cx.createLinearGradient(t.x, t.y, t.x + t.w, t.y + t.h);
+      g.addColorStop(0, '#d9dde3'); g.addColorStop(.3, '#f6f8fa'); g.addColorStop(.55, '#aeb4bd'); g.addColorStop(1, '#9aa1ab');
+      RR(t.x, t.y, t.w, t.h, 10); cx.fillStyle = g; cx.fill(); RR(t.x + .5, t.y + .5, t.w - 1, t.h - 1, 10); cx.strokeStyle = 'rgba(245,197,66,.55)'; cx.lineWidth = 1.5; cx.stroke();
+      cx.fillStyle = 'rgba(60,40,10,.6)'; cx.textAlign = 'center'; cx.textBaseline = 'middle'; cx.font = `400 ${Math.round(t.h * .3)}px 'Bebas Neue', Impact, sans-serif`; cx.fillText('RASPÁ', t.x + t.w / 2, t.y + t.h / 2);
+    });
   };
   const reset = () => {
     done = false; last = null;
-    const pool = SC_POOL.filter(a => a <= 10000), a = pool.length ? pool[Math.floor(Math.random() * pool.length)] : Math.min(...SC_POOL);
-    $('#dtPrize').textContent = money(a); $('#dtMsg').textContent = ''; $('#dtAgain').hidden = $('#dtBuy').hidden = true;
-    box.classList.remove('won', 'touched'); cv.style.pointerEvents = 'auto'; cover();
+    const pool = [...new Set([...SC_POOL.filter(a => a <= 10000), 100, 500, 1000, 5000])];
+    cells = [...pool, ...pool].sort(() => Math.random() - .5).slice(0, 6);
+    ce.textContent = ''; cells.forEach(a => { const c = document.createElement('div'); c.className = 'sccell'; c.textContent = money(a); ce.append(c); });
+    $('#dmMsg').textContent = ''; $('#dmAgain').hidden = $('#dmBuy').hidden = true; cv.style.pointerEvents = 'auto'; cover();
   };
-  const win = () => {
-    done = true; cx.clearRect(0, 0, cv.width, cv.height); box.classList.add('won'); cv.style.pointerEvents = 'none';
-    try { sfx.win(); confetti(60); } catch {}
-    $('#dtMsg').textContent = `🎉 ¡Así se siente ganar! Esto fue solo una prueba y no suma ni paga nada. Con una ficha real raspás las 6 casillas y jugás por premios de verdad de hasta ${money(Math.max(...SC_POOL))}.`;
-    $('#dtAgain').hidden = $('#dtBuy').hidden = false;
-    $('#dtBuy').textContent = tokens.length ? '🎟️ RASPAR CON MI FICHA' : '🎟️ COMPRAR FICHAS Y JUGAR';
+  const reveal = i => {
+    done = true; const t = rects[i];
+    cx.globalCompositeOperation = 'destination-out'; RR(t.x - 1, t.y - 1, t.w + 2, t.h + 2, 11); cx.fill(); cv.style.pointerEvents = 'none';
+    ce.children[i].classList.add('open');
+    try { sfx.win(); confetti(50); } catch {}
+    $('#dmMsg').textContent = `¡Buenísimo! 🎉 En este casillero de prueba descubriste ${money(cells[i])}. ¿Te gustaría descubrir el resto para ganar? En la raspadita real tenés 5 casilleros más: si encontrás 3 montos iguales, ¡ganás ese premio de verdad! (Esto fue una demostración: no suma ni paga nada.)`;
+    $('#dmBuy').textContent = tokens.length ? '🎟️ DESCUBRIR EL RESTO CON MI FICHA' : '🎟️ COMPRAR FICHAS Y DESCUBRIR EL RESTO';
+    $('#dmAgain').hidden = $('#dmBuy').hidden = false;
   };
   const check = () => {
-    const a = cx.getImageData(0, 0, cv.width, cv.height).data; let c = 0, t = 0;
-    for (let k = 3; k < a.length; k += 64) { t++; if (!a[k]) c++; }
-    if (c / t > .5) win();
+    const d = cv.width / (cv.clientWidth || 1);
+    for (let i = 0; i < rects.length && !done; i++) {
+      const t = rects[i], x = Math.max(0, Math.floor(t.x * d)), y = Math.max(0, Math.floor(t.y * d));
+      const w = Math.min(cv.width - x, Math.floor(t.w * d)), h = Math.min(cv.height - y, Math.floor(t.h * d)); if (w <= 0 || h <= 0) continue;
+      const a = cx.getImageData(x, y, w, h).data; let c = 0, m = 0;
+      for (let k = 3; k < a.length; k += 32) { m++; if (!a[k]) c++; }
+      if (c / m > .5) reveal(i);
+    }
   };
   const pos = e => { const r = cv.getBoundingClientRect(); return { x: e.clientX - r.left, y: e.clientY - r.top }; };
   const erase = p => {
-    const q = last || p; cx.globalCompositeOperation = 'destination-out'; cx.lineWidth = 36; cx.lineCap = cx.lineJoin = 'round';
+    const q = last || p; cx.globalCompositeOperation = 'destination-out'; cx.lineWidth = 30; cx.lineCap = cx.lineJoin = 'round';
     cx.beginPath(); cx.moveTo(q.x, q.y); cx.lineTo(p.x, p.y); cx.stroke(); last = p; if (++n % 5 === 0) check();
   };
-  cv.addEventListener('pointerdown', e => { if (done) return; drawing = true; box.classList.add('touched'); try { cv.setPointerCapture(e.pointerId); } catch {} last = null; erase(pos(e)); });
+  cv.addEventListener('pointerdown', e => { if (done) return; drawing = true; try { cv.setPointerCapture(e.pointerId); } catch {} last = null; erase(pos(e)); });
   cv.addEventListener('pointermove', e => { if (drawing && !done) erase(pos(e)); });
   ['pointerup', 'pointercancel'].forEach(t => cv.addEventListener(t, () => { drawing = false; last = null; }));
-  $('#dtAgain').addEventListener('click', reset);
-  $('#dtBuy').addEventListener('click', () => tokens.length ? scStart() : $('#buyPanel').scrollIntoView({ behavior: 'smooth', block: 'center' }));
+  $('#dmAgain').addEventListener('click', reset);
+  const buy = () => tokens.length ? scStart() : $('#buyPanel').scrollIntoView({ behavior: 'smooth', block: 'center' });
+  $('#dmBuy').addEventListener('click', buy);
+  $('#gScDemo').addEventListener('click', () => $('#demoTry').scrollIntoView({ behavior: 'smooth', block: 'center' }));
   window.addEventListener('resize', () => { if (!done && !drawing) cover(); });
   reset();
+})();
+
+/* ===== Tiro de prueba de la Rueda: anima la rueda real sin usar ficha ni llamar al servidor ===== */
+(function wheelDemo() {
+  const go = async () => {
+    if (spinning || !prizes.length) return;
+    const opts = prizes.filter(p => p.kind === 'free_spin' || (p.kind === 'cash' && p.amount <= 10000)), pz = opts.length ? opts[Math.floor(Math.random() * opts.length)] : prizes[0];
+    $('#wDemoMsg').textContent = ''; $('#wBuy').hidden = true;
+    $('#wheelWrap').scrollIntoView({ behavior: 'smooth', block: 'center' });
+    await new Promise(r => setTimeout(r, 650));
+    ac(); spinning = true; renderTokens();
+    try { await animateTo(pz.position, pz.kind); await new Promise(r => setTimeout(r, 900)); try { sfx.win(); confetti(70); } catch {} }
+    finally { tenseEnd(); spinning = false; renderTokens(); }
+    const top = Math.max(...prizes.filter(p => p.kind === 'cash').map(p => p.amount), 0);
+    $('#wDemoMsg').textContent = `¡Buenísimo! 🎰 En esta prueba la Rueda cayó en “${pz.label}”. Es solo una demostración y no suma ni paga nada, pero con una ficha real cada giro es una chance de ganar hasta ${money(top)} o el auto. ¿Te animás a girar de verdad?`;
+    $('#wBuy').textContent = tokens.length ? '🎰 GIRAR DE VERDAD CON MI FICHA' : '🎰 COMPRAR FICHAS Y GIRAR'; $('#wBuy').hidden = false;
+    $('#rueda').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  };
+  $('#wDemo').addEventListener('click', go); $('#gWheelDemo').addEventListener('click', go);
+  $('#wBuy').addEventListener('click', () => tokens.length ? ($('#wheelWrap').scrollIntoView({ behavior: 'smooth', block: 'center' }), setTimeout(spin, 450)) : $('#buyPanel').scrollIntoView({ behavior: 'smooth', block: 'center' }));
 })();
 
 /* ===== Barra de progreso y brillo que sigue al cursor ===== */
