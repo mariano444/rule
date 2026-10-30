@@ -1891,7 +1891,7 @@ const SC_PRIZES = [
   { amount: 10000, w: 15000 }, { amount: 50000, w: 4000 }, { amount: 200000, w: 500 }, { amount: 1000000, w: 40 }
 ];                                         // solo demo: en producción decide el servidor con do_scratch
 const SC_NONE_W = 670460;
-const SC_POOL = SC_PRIZES.map(p => p.amount);
+let SC_POOL = SC_PRIZES.map(p => p.amount);       // en producción se reemplaza por get_scratch_prizes()
 let sc = null, scBusy = false, scDrawing = false, scLast = null, scChk = 0;
 const scCv = $('#scCanvas'), scx = scCv.getContext('2d', { willReadFrequently: true });
 const shuffle = a => { for (let i = a.length - 1; i > 0; i--) { const j = (Math.random() * (i + 1)) | 0; [a[i], a[j]] = [a[j], a[i]]; } return a; };
@@ -1996,9 +1996,22 @@ async function scStart() {
   scBusy = false; renderTokens(); scRenderCells(); scCover(); scPaint(); sfx.ok();
   $('#raspadita .sccard').scrollIntoView({ behavior: 'smooth', block: 'center' });
 }
-function scInit() {
+function scChips() {
   const pr = $('#scPrizes'); pr.textContent = '';
   SC_POOL.slice().sort((a, b) => b - a).forEach((a, i) => { const s = document.createElement('span'); if (i < 2) s.className = 'top'; s.textContent = money(a); pr.append(s); });
+}
+async function scLoadPrizes() {          // los montos vienen del servidor (scratch_prizes)
+  if (DEMO || !sb) return;
+  try {
+    const { data, error } = await sb.rpc('get_scratch_prizes');
+    if (error || !Array.isArray(data)) return;
+    const pool = [...new Set(data.map(x => +x.amount).filter(a => a > 0))];
+    for (const p of SC_PRIZES) { if (pool.length >= 4) break; if (!pool.includes(p.amount)) pool.push(p.amount); }   // la tarjeta necesita al menos 4 montos distintos
+    if (pool.length) { SC_POOL = pool; scChips(); }
+  } catch {}
+}
+function scInit() {
+  scChips(); scLoadPrizes();
   const saved = store.get('mr_scratch', null);
   if (saved && saved.res && Array.isArray(saved.cells) && saved.cells.length === 6) sc = { res: saved.res, cells: saved.cells, done: false };
   scRenderCells(); scCover(); scPaint();
