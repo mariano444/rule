@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>Mega Giro — Girá y ganá hasta $20.000.000</title>
-<meta name="description" content="Un tiro, diez premios. Comprá tu ficha por transferencia y jugá en Mega Giro.">
+<meta name="description" content="Una ficha sirve para girar la ruleta o para jugar una raspadita. Diez premios, incluido un auto. Comprá tus fichas por transferencia.">
 <meta name="theme-color" content="#0a0508">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -487,45 +487,27 @@ img,video,canvas{max-width:100%}
   .carframe img{animation:none}
   .reveal{transition-duration:.35s}
 }
-</style>
-<style id="v7">
-/* ===== Raspadita ===== */
-#raspadita .scwrap{display:grid;grid-template-columns:1.05fr .95fr;gap:28px;align-items:center;padding:22px;border-radius:26px;
-  background:linear-gradient(160deg,rgba(11,106,120,.28),rgba(18,6,12,.92) 70%);border:1px solid var(--line)}
-@media(max-width:820px){#raspadita .scwrap{grid-template-columns:1fr;padding:14px;gap:20px}}
-.sccard{position:relative;width:100%;max-width:480px;margin:0 auto;aspect-ratio:3/2.2;padding:12px;border-radius:22px;
-  background:linear-gradient(145deg,#ffe08a,#f5c542 45%,#b8860b);box-shadow:0 0 50px rgba(245,197,66,.25),0 18px 40px rgba(0,0,0,.5)}
-.scgrid{position:relative;height:100%;border-radius:14px;overflow:hidden;background:#12060c}
-.sccells{display:grid;grid-template-columns:repeat(3,1fr);grid-template-rows:repeat(2,1fr);gap:6px;height:100%;padding:6px}
-.sccell{display:flex;align-items:center;justify-content:center;text-align:center;border-radius:10px;line-height:1;
-  font-family:'Bebas Neue',Impact,sans-serif;font-size:clamp(20px,5.2vw,38px);letter-spacing:1px;color:#fff3c4;
-  background:linear-gradient(160deg,#3a0a1c,#12060c);border:1px solid rgba(245,197,66,.25);transition:background .4s,box-shadow .4s,transform .4s}
-.sccell.q{color:rgba(255,243,196,.35)}
-.sccell.hit{color:#3a0a12;background:linear-gradient(180deg,#ffe08a,#f5c542);box-shadow:0 0 22px rgba(245,197,66,.8);transform:scale(1.04);animation:pulse 1.2s ease-in-out infinite}
-#scCanvas{position:absolute;inset:0;width:100%;height:100%;touch-action:none;cursor:crosshair;border-radius:14px;user-select:none;-webkit-user-select:none}
-.scinfo h3{font-family:'Bebas Neue',sans-serif;font-size:clamp(34px,6vw,54px);line-height:.95;letter-spacing:2px;color:var(--gold-2);margin-bottom:8px}
-.scinfo p{color:var(--muted);font-size:15px;line-height:1.6;margin-bottom:14px}
-.scprizes{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 16px}
-.scprizes span{padding:5px 11px;border-radius:99px;font-size:12.5px;font-weight:800;color:#fff3c4;background:rgba(245,197,66,.1);border:1px solid rgba(245,197,66,.35)}
-.scprizes span.top{color:#2a1a02;background:linear-gradient(90deg,#f5c542,#ffe9a6)}
-.scbtns{display:grid;gap:8px}
-.scbtns .btn{display:block;width:100%}
-.scbtns .btn[hidden]{display:none}
-.scnote{margin-top:10px;font-size:12.5px;color:var(--muted);text-align:center}
-@media(prefers-reduced-motion:reduce){.sccell.hit{animation:none}}
+.fichabox{display:flex;align-items:center;gap:14px;max-width:520px;margin:16px auto 0;padding:12px 18px;border-radius:18px;text-align:left;background:linear-gradient(135deg,rgba(245,197,66,.16),rgba(193,18,31,.14));border:1px solid rgba(245,197,66,.5);box-shadow:0 0 28px rgba(245,197,66,.14)}
+.fichabox .fb-ico{font-size:34px;flex:none}
+.fichabox b:first-child{display:block;font-family:'Bebas Neue',sans-serif;font-size:26px;letter-spacing:1.2px;color:var(--gold-2);line-height:1.05}
+.fichabox span:not(.fb-ico){display:block;font-size:13.5px;color:#e6d9b8;line-height:1.45;margin-top:2px}
+.fichabox span b{color:var(--gold-2)}
+.ptsub{color:var(--muted);font-size:13.5px;line-height:1.5;margin-top:6px}
+.ptsub b{color:var(--gold-2)}
+@media(max-width:600px){.fichabox{padding:10px 12px;gap:10px}.fichabox .fb-ico{font-size:28px}}
 </style>
 </head>
 <body>
 <div class="aurora" aria-hidden="true"><i></i><i></i><i></i></div>
 
-<div id="demoBar" class="demo" hidden>MODO DEMO · sin cobros reales · configurá Supabase en el código para producción</div>
+<div id="demoBar" class="demo" style="display:none;" hidden>MODO DEMO · sin cobros reales · configurá Supabase en el código para producción</div>
 
 <header>
   <div class="wrap">
     <div class="logo"><svg viewBox="0 0 32 32" aria-hidden="true"><defs><linearGradient id="lg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fff3c4"/><stop offset=".5" stop-color="#f5c542"/><stop offset="1" stop-color="#b8860b"/></linearGradient></defs><circle cx="16" cy="16" r="14" fill="none" stroke="url(#lg)" stroke-width="2.4"/><circle cx="16" cy="16" r="3.2" fill="url(#lg)"/><g stroke="url(#lg)" stroke-width="2" stroke-linecap="round"><path d="M16 4v6M16 22v6M4 16h6M22 16h6M7.5 7.5l4.2 4.2M20.3 20.3l4.2 4.2M24.5 7.5l-4.2 4.2M11.7 20.3l-4.2 4.2"/></g></svg>MEGA GIRO</div>
-    <nav class="nav" aria-label="Secciones"><a href="#premios">Premios</a><a href="#raspadita">Raspadita</a><a href="#como">Cómo funciona</a><a href="#ganadores">Ganadores</a><a href="#faq">Preguntas</a></nav>
+    <nav class="nav" aria-label="Secciones"><a href="#premios">Premios</a><a href="#como">Cómo funciona</a><a href="#ganadores">Ganadores</a><a href="#faq">Preguntas</a></nav>
     <div class="hdr-right">
-      <div class="chip">🎟️ Fichas: <b id="tokCount">0</b></div>
+      <div class="chip" title="Cada ficha sirve para la ruleta o la raspadita">🎟️ Fichas: <b id="tokCount">0</b></div>
       <button class="icon-btn" id="soundBtn" aria-label="Activar o silenciar sonido" title="Sonido">🔊</button>
     </div>
   </div>
@@ -536,7 +518,8 @@ img,video,canvas{max-width:100%}
     <div class="badge-live"><span class="dot"></span>SORTEO ABIERTO · GIRÁ CUANDO QUIERAS</div>
     <h1>GIRÁ <em>Y</em> GANÁ</h1>
     <p class="lead">Diez premios en juego, incluido <b>un auto</b>. Un solo giro puede cambiarte el día.</p>
-    <p class="from" id="fromTxt"></p>
+    <div class="fichabox"><span class="fb-ico">🎟️</span><div><b>1 ficha = 1 jugada</b><span>Usala para <b>girar la ruleta</b> o para <b>rascar una raspadita</b>. Vos elegís.</span></div></div>
+    <p class="from" id="fromTxt" style="display:none;"></p>
     <div class="jackpot"><span>PREMIO MAYOR</span> <b id="jackAmt">$20.000.000</b></div>
     <ul class="trust">
       <li>🔒 Pago seguro por transferencia</li>
@@ -572,7 +555,7 @@ img,video,canvas{max-width:100%}
 
     <aside class="panel" id="buyPanel">
       <div class="claimbar" id="claimBar"><span id="claimBarTxt"></span><button class="btn" id="claimBarBtn" type="button">🏆 RECLAMAR AHORA</button></div>
-      <div class="ptitle"><span class="eyebrow">COMPRÁ TUS FICHAS</span><h2>ELEGÍ TU PACK</h2></div>
+      <div class="ptitle"><span class="eyebrow">COMPRÁ TUS FICHAS</span><h2>ELEGÍ TU PACK</h2><p class="ptsub">Cada ficha vale <b>1 jugada</b>: la usás en la <b>ruleta</b> o en la <b>raspadita</b>.</p></div>
 
       <div class="have" id="haveBox">
         <b id="haveTxt"></b>
@@ -610,11 +593,11 @@ img,video,canvas{max-width:100%}
 
   <section class="block reveal" id="como">
     <span class="eyebrow">CÓMO FUNCIONA</span>
-    <h3>TRES PASOS Y A GIRAR</h3>
+    <h3>TRES PASOS Y A JUGAR</h3>
     <div class="how">
-      <div class="st"><div class="n">1</div><h4>Elegí tu pack</h4><p>1 ficha o 3 fichas: cada ficha es un giro. El pack de 3 te sale más barato por giro.</p></div>
+      <div class="st"><div class="n">1</div><h4>Elegí tu pack</h4><p>1 ficha o 3 fichas: cada ficha es una jugada. El pack de 3 te sale más barato por jugada.</p></div>
       <div class="st"><div class="n">2</div><h4>Hacé la transferencia</h4><p>Te llevamos al pago seguro. Apenas se confirma la transferencia, tus fichas se acreditan solas.</p></div>
-      <div class="st"><div class="n">3</div><h4>Girá y mirá tu premio</h4><p>El sorteo se decide en el servidor. Si ganás, reclamás tu premio con tus datos y una foto.</p></div>
+      <div class="st"><div class="n">3</div><h4>Girá o rascá y mirá tu premio</h4><p>Con cada ficha elegís: <b>girar la ruleta</b> o <b>rascar una raspadita</b>. El sorteo se decide en el servidor. Si ganás, reclamás tu premio con tus datos y una foto.</p></div>
     </div>
   </section>
 
@@ -653,28 +636,6 @@ img,video,canvas{max-width:100%}
     <div class="pcta"><button class="btn" id="ctaBuy" type="button">🎰 QUIERO GIRAR AHORA</button></div>
   </section>
 
-  <section class="block reveal" id="raspadita">
-    <span class="eyebrow">NUEVO · RASPADITA</span>
-    <h3>RASPÁ Y GANÁ</h3>
-    <p class="sub">Premios desde $100 hasta $1.000.000. Raspá la plata y, si encontrás 3 montos iguales, te lo llevás.</p>
-    <div class="scwrap">
-      <div class="sccard"><div class="scgrid">
-        <div class="sccells" id="scCells"></div>
-        <canvas id="scCanvas" aria-label="Zona para raspar"></canvas>
-      </div></div>
-      <div class="scinfo">
-        <h3>3 IGUALES,<br>PREMIO ASEGURADO</h3>
-        <p>Cada raspadita usa <b>1 ficha</b>, la misma que usás para la rueda. El resultado lo define el servidor antes de que raspes: raspar es solo la parte divertida.</p>
-        <div class="scprizes" id="scPrizes"></div>
-        <div class="scbtns">
-          <button class="btn" id="scBuy" type="button">🎟️ RASPAR AHORA</button>
-          <button class="btn ghost" id="scReveal" type="button" hidden>✨ REVELAR TODO</button>
-        </div>
-        <div class="scnote" id="scNote">Usá el dedo o el mouse para raspar.</div>
-      </div>
-    </div>
-  </section>
-
   <section class="block reveal" id="ganadores" hidden>
     <span class="eyebrow">GANADORES</span>
     <h3>NUESTROS GANADORES</h3>
@@ -685,8 +646,9 @@ img,video,canvas{max-width:100%}
   <section class="block reveal" id="faq">
     <span class="eyebrow">AYUDA</span>
     <h3>PREGUNTAS FRECUENTES</h3>
+    <details open><summary>¿Para qué sirven las fichas?</summary><p>Una ficha es una jugada. Con cada ficha podés <b>girar la ruleta</b> o <b>jugar una raspadita</b>, lo que prefieras. Si comprás el pack de 3, tenés 3 jugadas para repartir como quieras entre ruleta y raspadita.</p></details>
     <details><summary>¿Cómo se decide el premio?</summary><p>Al girar, el servidor sortea el resultado con un generador aleatorio criptográfico y recién después la rueda se anima hasta ese gajo. La animación es solo visual: no se puede influir en el resultado.</p></details>
-    <details><summary>¿Cuál es la diferencia entre los packs?</summary><p>Cada ficha es un giro. El pack de 3 fichas tiene un precio menor por giro que comprar fichas de a una.</p></details>
+    <details><summary>¿Cuál es la diferencia entre los packs?</summary><p>Cada ficha es una jugada (ruleta o raspadita). El pack de 3 fichas tiene un precio menor por jugada que comprar fichas de a una.</p></details>
     <details><summary>¿Cuándo se acreditan mis fichas?</summary><p>Apenas se confirma tu transferencia. La pantalla se actualiza sola; si cerrás la página, tus fichas quedan guardadas en este dispositivo.</p></details>
     <details><summary>¿Cómo cobro mi premio?</summary><p>Después de ganar tocá “Reclamar mi premio” y completá tu nombre, apellido y una foto de perfil. Validamos tus datos y coordinamos el pago o la entrega por teléfono o WhatsApp.</p></details>
     <details><summary>¿Qué pasa con “Otro tiro”?</summary><p>Se acredita una ficha gratis en tu cuenta al instante y podés girar de nuevo.</p></details>
@@ -696,7 +658,7 @@ img,video,canvas{max-width:100%}
 <footer>
   <div class="wrap">
     <p><strong>+18 · Juego responsable.</strong> Jugar implica riesgo de perder el dinero apostado. Jugá solo con dinero que puedas permitirte perder. Si sentís que el juego deja de ser un entretenimiento, pedí ayuda.</p>
-    <p id="licenseTxt" style="margin-top:8px"></p>
+    <p id="licenseTxt" style="margin-top:8px; display:none;"></p>
   </div>
 </footer>
 
@@ -1216,13 +1178,13 @@ function renderTokens() {
   const box = $('#haveBox');
   if (tokens.length) {
     box.classList.add('on');
-    $('#haveTxt').textContent = tokens.length === 1 ? '¡Tenés 1 ficha lista para girar!' : `¡Tenés ${tokens.length} fichas listas para girar!`;
+    $('#haveTxt').textContent = tokens.length === 1 ? '¡Tenés 1 ficha lista para jugar (ruleta o raspadita)!' : `¡Tenés ${tokens.length} fichas listas para jugar (ruleta o raspadita)!`;
   } else box.classList.remove('on');
   const hub = $('#hub');
   hub.textContent = tokens.length ? 'GIRAR' : 'FICHA';
   paintBuy();
   hub.classList.toggle('ready', tokens.length > 0 && !spinning);
-  hub.disabled = spinning; $('#spinBtn').disabled = spinning; try { scPaint(); } catch {}
+  hub.disabled = spinning; $('#spinBtn').disabled = spinning;
 }
 
 function prizeMeta(p, rank) {
@@ -1396,7 +1358,7 @@ function renderPacks() {
     const dot = document.createElement('span'); dot.className = 'dot';
     const mid = document.createElement('span'); mid.className = 'pmid';
     const t = document.createElement('b'); t.textContent = k.label;
-    const sub = document.createElement('small'); sub.textContent = k.qty > 1 ? `${fmt(Math.round(k.price / k.qty))} por ficha` : '1 giro';
+    const sub = document.createElement('small'); sub.textContent = k.qty > 1 ? `${fmt(Math.round(k.price / k.qty))} por ficha · ${k.qty} jugadas` : '1 jugada (ruleta o raspadita)';
     mid.append(t, sub);
     const pr = document.createElement('span'); pr.className = 'pprice'; pr.textContent = fmt(k.price);
     lab.append(inp, dot, mid, pr);
@@ -1693,7 +1655,7 @@ function horaMsg() {
   if (horaWinners === null) { el.textContent = ''; return; }
   const tag = HORA_DEMO ? ' <small style="opacity:.6;font-size:10px;letter-spacing:.12em;border:1px solid currentColor;border-radius:6px;padding:1px 5px">DEMO</small>' : '';
   if (horaWinners > 0) el.innerHTML = `<span class="live"></span><em>${horaWinners}</em> ${horaWinners === 1 ? 'jugador ganó' : 'jugadores ganaron'} un premio en esta hora${tag}`;
-  else el.innerHTML = '<span class="live"></span>Todavía no hubo premios en esta hora: <em>¡podés ser el primero!</em>';
+  else el.innerHTML = '';
 }
 async function horaFetch() {
   if (HORA_DEMO) { horaWinners = 1 + Math.floor(Math.random() * 50); horaMsg(); return; }   // demostración: número al azar entre 1 y 50
@@ -1720,7 +1682,8 @@ function renderMarquee() {
 }
 const TIPS = [
   '🎁 Si te sale “OTRO TIRO”, te regalamos una ficha extra',
-  '💡 Con el pack de 3 fichas cada giro te sale mucho menos',
+  '🎟️ Cada ficha sirve para la ruleta o para la raspadita, vos elegís',
+  '💡 Con el pack de 3 fichas cada jugada te sale mucho menos',
   '⚡ Pagás por transferencia y las fichas se acreditan solas',
   '🚗 Entre los premios hay un Gol Trend rojo, ¡podés ser el próximo!',
   '🏆 Si ganás, reclamás tu premio con tu nombre y una foto',
@@ -1885,146 +1848,6 @@ async function syncClaims() {
   if (Array.isArray(data) && data.length) { claims = claims.filter(c => !data.includes(c.code)); store.set('mr_claims', claims); renderClaims(); }
 }
 
-/* ====================== RASPADITA ====================== */
-const SC_PRIZES = [
-  { amount: 100, w: 150000 }, { amount: 500, w: 80000 }, { amount: 1000, w: 50000 }, { amount: 5000, w: 30000 },
-  { amount: 10000, w: 15000 }, { amount: 50000, w: 4000 }, { amount: 200000, w: 500 }, { amount: 1000000, w: 40 }
-];                                         // solo demo: en producción decide el servidor con do_scratch
-const SC_NONE_W = 670460;
-let SC_POOL = SC_PRIZES.map(p => p.amount);       // en producción se reemplaza por get_scratch_prizes()
-let sc = null, scBusy = false, scDrawing = false, scLast = null, scChk = 0;
-const scCv = $('#scCanvas'), scx = scCv.getContext('2d', { willReadFrequently: true });
-const shuffle = a => { for (let i = a.length - 1; i > 0; i--) { const j = (Math.random() * (i + 1)) | 0; [a[i], a[j]] = [a[j], a[i]]; } return a; };
-
-function scDemoRoll() {
-  const total = SC_NONE_W + SC_PRIZES.reduce((s, p) => s + p.w, 0);
-  let r = crypto.getRandomValues(new Uint32Array(1))[0] % total;
-  for (const p of SC_PRIZES) { if (r < p.w) return { kind: 'cash', amount: p.amount, label: money(p.amount), claim_code: 'demo-claim-' + crypto.randomUUID() }; r -= p.w; }
-  return { kind: 'none', amount: 0, label: 'SUERTE LA PRÓXIMA', claim_code: null };
-}
-function scMakeCells(res) {
-  const amt = +res.amount;
-  if (res.kind === 'cash' && amt > 0) {
-    const others = shuffle(SC_POOL.filter(a => a !== amt)).slice(0, 3);
-    return shuffle([amt, amt, amt, ...others]);
-  }
-  return shuffle(SC_POOL.flatMap(a => [a, a])).slice(0, 6);   // ningún monto aparece 3 veces
-}
-function scRenderCells() {
-  const box = $('#scCells'); box.textContent = '';
-  for (let i = 0; i < 6; i++) {
-    const c = document.createElement('div'); c.className = 'sccell';
-    if (sc) { c.textContent = money(sc.cells[i]); if (sc.done && sc.res.kind === 'cash' && sc.cells[i] === +sc.res.amount) c.classList.add('hit'); }
-    else { c.textContent = '?'; c.classList.add('q'); }
-    box.append(c);
-  }
-}
-function scCover() {
-  const dpr = Math.min(window.devicePixelRatio || 1, 2), w = scCv.clientWidth, h = scCv.clientHeight;
-  if (!w) return;
-  scCv.width = Math.round(w * dpr); scCv.height = Math.round(h * dpr);
-  scx.setTransform(dpr, 0, 0, dpr, 0, 0); scx.globalCompositeOperation = 'source-over';
-  const g = scx.createLinearGradient(0, 0, w, h);
-  g.addColorStop(0, '#d9dde3'); g.addColorStop(.3, '#f6f8fa'); g.addColorStop(.55, '#aeb4bd'); g.addColorStop(.8, '#eef0f3'); g.addColorStop(1, '#9aa1ab');
-  scx.fillStyle = g; scx.fillRect(0, 0, w, h);
-  scx.strokeStyle = 'rgba(255,255,255,.35)'; scx.lineWidth = 6;
-  for (let x = -h; x < w; x += 26) { scx.beginPath(); scx.moveTo(x, h); scx.lineTo(x + h, 0); scx.stroke(); }
-  scx.fillStyle = 'rgba(60,40,10,.55)'; scx.textAlign = 'center'; scx.textBaseline = 'middle';
-  scx.font = `400 ${Math.round(w * .11)}px 'Bebas Neue', Impact, sans-serif`;
-  scx.fillText(sc ? '¡RASPÁ ACÁ!' : 'MEGA RASPADITA', w / 2, h / 2 - w * .03);
-  scx.font = `600 ${Math.round(w * .037)}px Poppins, sans-serif`;
-  scx.fillText(sc ? 'Encontrá 3 montos iguales' : 'Tocá “Raspar ahora”', w / 2, h / 2 + w * .06);
-}
-function scPaint() {
-  const b = $('#scBuy'), r = $('#scReveal'), active = sc && !sc.done;
-  b.disabled = scBusy || !!active;
-  b.textContent = scBusy ? 'PREPARANDO…' : active ? '👆 RASPÁ LA TARJETA' : tokens.length ? (sc ? '🎟️ RASPAR OTRA · usa 1 ficha' : '🎟️ RASPAR AHORA · usa 1 ficha') : '🎟️ COMPRAR FICHAS PARA RASPAR';
-  r.hidden = !active;
-  scCv.style.pointerEvents = active ? 'auto' : 'none';
-}
-function scPos(e) { const r = scCv.getBoundingClientRect(); return [e.clientX - r.left, e.clientY - r.top]; }
-function scErase(x, y) {
-  scx.globalCompositeOperation = 'destination-out'; scx.lineCap = 'round'; scx.lineJoin = 'round';
-  scx.lineWidth = Math.max(30, scCv.clientWidth * .075);
-  scx.beginPath();
-  if (scLast) { scx.moveTo(scLast[0], scLast[1]); scx.lineTo(x, y); } else { scx.moveTo(x, y); scx.lineTo(x + .01, y); }
-  scx.stroke(); scLast = [x, y];
-  const now = performance.now();
-  if (now - scChk > 140) { scChk = now; scProgress(); }
-}
-function scProgress() {
-  if (!sc || sc.done) return;
-  const d = scx.getImageData(0, 0, scCv.width, scCv.height).data;
-  let clear = 0, tot = 0;
-  for (let i = 3; i < d.length; i += 64) { tot++; if (d[i] === 0) clear++; }
-  if (clear / tot > .5) scFinish();
-}
-function scFinish() {
-  if (!sc || sc.done) return;
-  sc.done = true; store.del('mr_scratch'); scDrawing = false;
-  scx.globalCompositeOperation = 'source-over'; scx.clearRect(0, 0, scCv.width, scCv.height);
-  scRenderCells(); scPaint();
-  const res = sc.res, win = res.kind === 'cash' && +res.amount > 0;
-  if (win) { sfx.win(); if (navigator.vibrate) navigator.vibrate([60, 40, 60]); } else sfx.lose();
-  setTimeout(() => {
-    showResult(res);
-    const ag = $('#resAgain');
-    ag.textContent = tokens.length ? '🎟️ RASPAR OTRA' : 'COMPRAR OTRA FICHA';
-    ag.onclick = () => { closeModal('#resModal'); if (tokens.length) setTimeout(scStart, 250); else $('#buyPanel').scrollIntoView({ behavior: 'smooth', block: 'center' }); };
-  }, win ? 900 : 500);
-}
-async function scStart() {
-  if (scBusy || spinning) return;
-  if (sc && !sc.done) { toast('Terminá de raspar tu tarjeta actual.'); return; }
-  if (!tokens.length) { $('#buyPanel').scrollIntoView({ behavior: 'smooth', block: 'center' }); setTimeout(() => $('#fName').focus({ preventScroll: true }), 500); return; }
-  ac(); scBusy = true; scPaint();
-  const code = tokens[0]; let res;
-  try {
-    if (DEMO) res = scDemoRoll();
-    else { const { data, error } = await sb.rpc('do_scratch', { p_code: code }); if (error) throw error; res = data; }
-  } catch (e) {
-    scBusy = false; scPaint();
-    if (/ficha_usada|ficha_invalida/.test((e && e.message) || '')) { tokens = tokens.filter(c => c !== code); saveTokens(); toast('Esa ficha ya no es válida.'); }
-    else toast('No se pudo preparar la raspadita. Tu ficha sigue disponible.');
-    return;
-  }
-  res.amount = +res.amount || 0; res.label = res.label || (res.amount ? money(res.amount) : 'SUERTE LA PRÓXIMA');
-  tokens = tokens.filter(c => c !== code); store.set('mr_tokens', tokens);
-  if (res.claim_code) { claims.push({ code: res.claim_code, label: res.label, amount: res.amount, kind: res.kind }); store.set('mr_claims', claims); renderClaims(); }
-  sc = { res, cells: scMakeCells(res), done: false };
-  store.set('mr_scratch', { res: sc.res, cells: sc.cells });
-  scBusy = false; renderTokens(); scRenderCells(); scCover(); scPaint(); sfx.ok();
-  $('#raspadita .sccard').scrollIntoView({ behavior: 'smooth', block: 'center' });
-}
-function scChips() {
-  const pr = $('#scPrizes'); pr.textContent = '';
-  SC_POOL.slice().sort((a, b) => b - a).forEach((a, i) => { const s = document.createElement('span'); if (i < 2) s.className = 'top'; s.textContent = money(a); pr.append(s); });
-}
-async function scLoadPrizes() {          // los montos vienen del servidor (scratch_prizes)
-  if (DEMO || !sb) return;
-  try {
-    const { data, error } = await sb.rpc('get_scratch_prizes');
-    if (error || !Array.isArray(data)) return;
-    const pool = [...new Set(data.map(x => +x.amount).filter(a => a > 0))];
-    for (const p of SC_PRIZES) { if (pool.length >= 4) break; if (!pool.includes(p.amount)) pool.push(p.amount); }   // la tarjeta necesita al menos 4 montos distintos
-    if (pool.length) { SC_POOL = pool; scChips(); }
-  } catch {}
-}
-function scInit() {
-  scChips(); scLoadPrizes();
-  const saved = store.get('mr_scratch', null);
-  if (saved && saved.res && Array.isArray(saved.cells) && saved.cells.length === 6) sc = { res: saved.res, cells: saved.cells, done: false };
-  scRenderCells(); scCover(); scPaint();
-  scCv.addEventListener('pointerdown', e => { if (!sc || sc.done) return; scDrawing = true; scLast = null; try { scCv.setPointerCapture(e.pointerId); } catch {} const [x, y] = scPos(e); scErase(x, y); e.preventDefault(); });
-  scCv.addEventListener('pointermove', e => { if (!scDrawing) return; const [x, y] = scPos(e); scErase(x, y); e.preventDefault(); });
-  const up = () => { if (!scDrawing) return; scDrawing = false; scLast = null; scProgress(); };
-  scCv.addEventListener('pointerup', up); scCv.addEventListener('pointercancel', up);
-  $('#scBuy').addEventListener('click', scStart);
-  $('#scReveal').addEventListener('click', scFinish);
-  addEventListener('resize', () => { if (!sc && scCv.clientWidth && Math.abs(scCv.width / (Math.min(window.devicePixelRatio || 1, 2)) - scCv.clientWidth) > 2) scCover(); });
-  if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => { if (!sc || !sc.done) scCover(); });
-}
-
 /* ====================== INIT ====================== */
 $('#buyForm').addEventListener('submit', buy);
 $('#hub').addEventListener('click', spin);
@@ -2056,7 +1879,7 @@ paintSound();
 (async () => {
   await Promise.all([loadPacks(), loadWheel()]);
   renderCarShow(); renderHero(); setupReveal();
-  renderTokens(); renderClaims(); renderMe(); horaStart(); extras(); scInit();
+  renderTokens(); renderClaims(); renderMe(); horaStart(); extras();
   requestAnimationFrame(frame);
   syncClaims();
   await syncTokens();
